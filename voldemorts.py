@@ -5,6 +5,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
 import os
+import typing
 import platform
 import secrets
 import base64
@@ -77,10 +78,10 @@ def decrypt(filename, key):
     f = Fernet(key)
     with open(filename, "rb") as file:
         # read the encrypted data
-        encrypted_data = file.read()
+        encrypted_data: bytes = file.read()
     # decrypt data
     try:
-        decrypted_data = f.decrypt(encrypted_data)
+        decrypted_data: bytes = f.decrypt(encrypted_data)
     except cryptography.fernet.InvalidToken:
         return 0
     # write the original file
@@ -88,15 +89,60 @@ def decrypt(filename, key):
         file.write(decrypted_data)
     return 1
 
+def not_around(gpath, home_path) -> list[str]:
+    dirs_for_filter: list[str] = []
 
-def filter(path=WD):
+    for root, Gdir, Gfiles in os.walk(home_path):
+            for i in range(len(Gdir)):
+                if Gdir[i] in [gpath.split('/')[-1]]:
+
+                    gpath: str = root[0:] + '/' + Gdir[i]
+                    print(gpath)
+                    prossesed_copy_path: str = gpath
+                    dirs_for_filter.append(prossesed_copy_path)
+    return dirs_for_filter
+
+def filter(_path: str =WD, *, is_around: bool =True, skipped: typing.Union[None, list[str]] =None):
+
+    path = _path
+    
+    input_copy_path: str = path
 
     temp_files: list[str] = []
     temp_dirs: list[str] = []
+    repeted_dirs: list[str] = []
+
+    if not is_around:
+        repeted_dirs = not_around(path, '/home')
+        path = repeted_dirs
+
+    if len(repeted_dirs) > 1:
+        print(f"""There a {len(repeted_dirs)} file that have the same name of {input_copy_path}.""")
+        i: int = 1
+        for dir in repeted_dirs:
+            if i == 1:
+                print(f"\n\n    {i}. The {input_copy_path} in [  {repeted_dirs[i]}  ] folder")
+                i += 1
+                continue
+            print(f"    {i}. The {input_copy_path} in [  {repeted_dirs[i - 2]}  ] folder")
+            i += 1
+        print(f"    {i}. All of them\n")
+        response: int = int(input('Choose one of the available options by passing it\'s number: '))
+        response -= 1
+
+        if response == len(repeted_dirs) + 1:
+            print("This future is not available yat.")  #   Make this dream in reality :) 
+            exit(1)
+
+        path = repeted_dirs[response]
 
     for element in os.listdir(path=path):
 
-        if element == "voldemorts.py" or element == "salt.salt" or element == "password.txt":
+        if skipped != None:
+            if element in [file_ for file_ in skipped]:  # ["voldemorts.py", "salt.salt", "password.txt"]
+                continue
+
+        if element in ["voldemorts.py", "salt.salt"]:
             continue
         
         element = os.path.join(path, element)
@@ -122,6 +168,7 @@ def filter(path=WD):
 
     return temp_dirs, temp_files
 
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="""File Encryptor Script with a Password""")
@@ -131,8 +178,10 @@ if __name__ == "__main__":
                         help="Whether to encrypt the file, only -e or -d can be specified.")
     parser.add_argument("-d", "--decrypt", action="store_true",
                         help="Whether to decrypt the file, only -e or -d can be specified.")
+    parser.add_argument("-i", "--is-around", help="If is around, the tool will encrypt/decrypt all the files that is with it in the same folder", type=bool)
+    parser.add_argument("-k", "--skipped", help="If there is any file you want to ignored it", type=list[str])
 
-    args = parser.parse_args()
+    args = parser.parse_args(args=['poeple info', '--encrypt', '--salt-size', '128'])
     file = args.file
 
     if args.encrypt:
@@ -141,7 +190,7 @@ if __name__ == "__main__":
             password = getpass.getpass("Enter the password for encryption: ")
         except KeyboardInterrupt:
             print('\n\nMADE BY Muhammed Alkohawaldeh')
-            exit()
+            exit(1)
 
     elif args.decrypt:
 
@@ -149,7 +198,7 @@ if __name__ == "__main__":
             password = getpass.getpass("Enter the password you used for encryption: ")
         except KeyboardInterrupt:
             print('\n\nMADE BY Muhammed Alkohawaldeh')
-            exit()
+            exit(1)
 
     if args.salt_size:
         key = generate_key(password, salt_size=args.salt_size, save_salt=True)
@@ -162,16 +211,56 @@ if __name__ == "__main__":
     if encrypt_ and decrypt_:
         raise TypeError("Please specify whether you want to encrypt the file or decrypt it.")
     elif encrypt_:
-        for _file in filter()[1]:
-            encrypt(_file, key)
+        if args.is_around:
+            
+            if args.skipped:
+                for _file in filter(file, is_around=True, skipped=args.skipped)[1]:
+                    encrypt(_file, key)
+
+            for _file in filter(file, is_around=True, skipped=None)[1]:
+                encrypt(_file, key)
+
+        elif args.skipped:
+            for _file in filter(file, is_around=False, skipped=args.skipped)[1]:
+                    encrypt(_file, key)
+        else:
+            for _file in filter(file, is_around=False, skipped=None)[1]:
+                    encrypt(_file, key)
+
         print("File Encrypted successfully")
+
     elif decrypt_:
-        for _file in filter()[1]:
-            if decrypt(_file, key):
-                print(f"[{_file.split('/')[-1]}] decrypted successfully")
-            else:
-                print("Invalid token, most likely the password is incorrect")
-                exit(1)
+        if args.is_around:
+            
+            if args.skipped:
+                            for _file in filter(file, is_around=True, skipped=args.skipped)[1]:
+                                if decrypt(_file, key):
+                                    print(f"[{_file.split('/')[-1]}] decrypted successfully")
+                                else:
+                                    print("Invalid token, most likely the password is incorrect")
+                                    exit(1)
+
+            for _file in filter(file, is_around=True, skipped=None)[1]:
+                    if decrypt(_file, key):
+                        print(f"[{_file.split('/')[-1]}] decrypted successfully")
+                    else:
+                        print("Invalid token, most likely the password is incorrect")
+                        exit(1)
+                    
+        elif args.skipped:
+            for _file in filter(file, is_around=False, skipped=args.skipped)[1]:
+                    if decrypt(_file, key):
+                        print(f"[{_file.split('/')[-1]}] decrypted successfully")
+                    else:
+                        print("Invalid token, most likely the password is incorrect")
+                        exit(1)
+        else:
+            for _file in filter(file, is_around=False, skipped=None)[1]:
+                    if decrypt(_file, key):
+                        print(f"[{_file.split('/')[-1]}] decrypted successfully")
+                    else:
+                        print("Invalid token, most likely the password is incorrect")
+                        exit(1)
     else:
         raise TypeError("Please specify whether you want to encrypt the file or decrypt it.")
 
