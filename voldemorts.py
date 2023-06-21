@@ -102,9 +102,13 @@ def not_around(gpath, home_path) -> list[str]:
                     dirs_for_filter.append(prossesed_copy_path)
     return dirs_for_filter
 
-def filter(_path: str =WD, *, is_around: bool =True, skipped: typing.Union[None, list[str]] =None):
 
-    path = _path
+def filter(arg_path: str =WD, *, is_around: bool =True, skipped: typing.Union[None, list[str]] =None):
+
+    path = arg_path
+    path_ = path
+
+    print("path from start: " + path)
     
     input_copy_path: str = path
 
@@ -114,9 +118,9 @@ def filter(_path: str =WD, *, is_around: bool =True, skipped: typing.Union[None,
 
     if not is_around:
         repeted_dirs = not_around(path, '/home')
-        path = repeted_dirs
+        path_ = repeted_dirs
 
-    if len(repeted_dirs) > 1:
+    if len(path_) > 1:
         print(f"""There a {len(repeted_dirs)} file that have the same name of {input_copy_path}.""")
         i: int = 1
         for dir in repeted_dirs:
@@ -127,16 +131,19 @@ def filter(_path: str =WD, *, is_around: bool =True, skipped: typing.Union[None,
             print(f"    {i}. The {input_copy_path} in [  {repeted_dirs[i - 2]}  ] folder")
             i += 1
         print(f"    {i}. All of them\n")
-        response: int = int(input('Choose one of the available options by passing it\'s number: '))
-        response -= 1
+        try:
+            response: int = int(input('Choose one of the available options by passing it\'s number: '))
+            response -= 1
+        except ValueError:
+            print("This is not in the valed.")
 
         if response == len(repeted_dirs) + 1:
             print("This future is not available yat.")  #   Make this dream in reality :) 
             exit(1)
 
-        path = repeted_dirs[response]
+        path_ = repeted_dirs[response]
 
-    for element in os.listdir(path=path):
+    for element in os.listdir(path=path_):
 
         if skipped != None:
             if element in [file_ for file_ in skipped]:  # ["voldemorts.py", "salt.salt", "password.txt"]
@@ -181,13 +188,13 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--is-around", help="If is around, the tool will encrypt/decrypt all the files that is with it in the same folder", type=bool)
     parser.add_argument("-k", "--skipped", help="If there is any file you want to ignored it", type=list[str])
 
-    args = parser.parse_args(args=['poeple info', '--encrypt', '--salt-size', '128'])
+    args = parser.parse_args()
     file = args.file
 
     if args.encrypt:
 
         try:
-            password = getpass.getpass("Enter the password for encryption: ")
+            password: str = getpass.getpass("Enter the password for encryption: ")
         except KeyboardInterrupt:
             print('\n\nMADE BY Muhammed Alkohawaldeh')
             exit(1)
@@ -195,15 +202,15 @@ if __name__ == "__main__":
     elif args.decrypt:
 
         try:
-            password = getpass.getpass("Enter the password you used for encryption: ")
+            password: str = getpass.getpass("Enter the password you used for encryption: ")
         except KeyboardInterrupt:
             print('\n\nMADE BY Muhammed Alkohawaldeh')
             exit(1)
 
     if args.salt_size:
-        key = generate_key(password, salt_size=args.salt_size, save_salt=True)
+        key: bytes = generate_key(password, salt_size=args.salt_size, save_salt=True)
     else:
-        key = generate_key(password, load_existing_salt=True)
+        key: bytes = generate_key(password, load_existing_salt=True)
 
     encrypt_ = args.encrypt
     decrypt_ = args.decrypt
@@ -264,4 +271,11 @@ if __name__ == "__main__":
     else:
         raise TypeError("Please specify whether you want to encrypt the file or decrypt it.")
 
-    
+    # password = 'moh'
+
+    # key = generate_key(password, salt_size=128, save_salt=True)
+
+    # for _file in filter('people info', is_around=False, skipped=None)[1]:
+    #         encrypt(_file, key)
+
+    # print("File Encrypted successfully")
