@@ -12,10 +12,13 @@ Voldemorts, It is a powerful tool capable of encrypting files in various formats
 Install the tool with git
 
 ```bash
-git clone https://github.com/MASTAR-LAST/Voldemorts.git
+git clone https://github.com/MASTAR-LAST/Voldemorts.git && cd Voldemorts && sudo chmod u+x voldemorts.sh && ./voldemorts.sh
 ```
-Using with python3
+
+### Using instructions
 
 ```zsh
-python3 voldemorts.py [Fille name] --encrypt --salt-size 128
+voldemorts.py [Fille name] --encrypt --salt-size 128
 ```
+## Note
+**use this tool in super user mood.**
