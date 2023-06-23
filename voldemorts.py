@@ -11,8 +11,9 @@ import secrets
 import base64
 import getpass
 import colorama
+import threading
 
-print(f"""                                                     
+print(f"""{colorama.Fore.CYAN}                                                     
             (   (                              )     
  (   (      )\  )\ )   (     )         (    ( /(     
  )\  )\ (  ((_)(()/(  ))\   (      (   )(   )\())(   
@@ -101,6 +102,9 @@ def decrypt(filename, key):
         file.write(decrypted_data)
     return True
 
+def show_wite_massege_and_exit():
+    print(f"{colorama.Fore.LIGHTWHITE_EX}This process could take some time.{colorama.Fore.RESET}\n")
+
 def not_around(gpath, home_path) -> list[str]:
     dirs_for_filter: list[str] = []
     files_for_filter: list[str] = []
@@ -122,12 +126,14 @@ def not_around(gpath, home_path) -> list[str]:
 
     return dirs_for_filter, files_for_filter
 
-first_time: int = 1
 
+first_time: int = 1
 def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[None, list[str]] =None, is_file: bool = False):
 
     global first_time
+
     
+
     path: str = arg_path
     path_: str = path
 
@@ -142,6 +148,8 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
     if first_time == 1:
 
         print(f"\n{colorama.Fore.LIGHTRED_EX}The path of target file/folde: {colorama.Fore.CYAN}{path}{colorama.Fore.RESET}\n")
+        
+        show_wite_massege_and_exit()
 
         if not is_around:
 
@@ -187,13 +195,17 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
         else:
             if path_ != [] and type(path_) == list:
                 path_ = path_[0]
-    print(path_)
-    if os.path.isfile(path_):
-        if path_ in ["voldemorts.py", ".salt.salt"]:
-            print(f"{colorama.Fore.RED}This file cannot be encrypted/decrypted{colorama.Fore.RESET}")
+    if is_file:
+        try:
+            if os.path.isfile(path_):
+                if path_ in ["voldemorts.py", ".salt.salt"]:
+                    print(f"{colorama.Fore.RED}This file cannot be encrypted/decrypted{colorama.Fore.RESET}")
+                    exit(1)
+                return path_
+        except TypeError:
+            print(f"{colorama.Fore.RED}There is no file have this name in your system.{colorama.Fore.RESET}")
             exit(1)
-        return path_
-    
+
     for element in os.listdir(path=path_):
 
         if skipped != None:
@@ -279,7 +291,11 @@ if __name__ == "__main__":
             key: bytes = generate_key(password, salt_size=args.salt_size, save_salt=True)
 
     else:
-        key: bytes = generate_key(password, load_existing_salt=True)
+        try:
+            key: bytes = generate_key(password, load_existing_salt=True)
+        except NameError:
+            print(f"\n{colorama.Fore.RED}Please specify whether you want to encrypt the file or decrypt it.{colorama.Fore.RESET}")
+            exit(1)
 
     encrypt_ = args.encrypt
     decrypt_ = args.decrypt
@@ -332,7 +348,7 @@ if __name__ == "__main__":
                     print(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                     exit(1)
             else:
-                for _file in filter(folder, is_around=True, skipped=None, is_file=True)[1]:
+                for _file in filter(folder, is_around=True, skipped=None, is_file=False)[1]:
                         if decrypt(_file, key):
                             print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
                         else:
@@ -355,7 +371,7 @@ if __name__ == "__main__":
                     print(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                     exit(1)
             else:
-                for _file in filter(folder, is_around=False, skipped=None, is_file=True)[1]:
+                for _file in filter(folder, is_around=False, skipped=None, is_file=False)[1]:
                         if decrypt(_file, key):
                             print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
                         else:

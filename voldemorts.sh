@@ -17,7 +17,9 @@ echo "Install packeges"
 echo ""
 
 pip install cryptography
+pip install colorama
 
+sudo chmod u+x voldemorts.py
 sudo mv voldemorts.py /usr/local/bin
 
 echo ""
