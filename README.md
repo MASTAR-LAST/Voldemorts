@@ -18,7 +18,7 @@ git clone https://github.com/MASTAR-LAST/Voldemorts.git && cd Voldemorts && sudo
 ### Using instructions
 
 ```zsh
-voldemorts.py [Fille name] --encrypt --salt-size 128
+voldemorts.py [folder name] --encrypt --salt-size 128
 ```
 ## Note
 **use this tool in super user mood.**
