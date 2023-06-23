@@ -1,15 +1,14 @@
 #!/bin/bash
 
-echo "Update The system"
+echo "\n\nUpdate The system\n"
 
 sudo apt update
 
-echo "Install packeges"
+echo "\n\nInstall packeges\n"
 
-pip install getpass
 pip install cryptography
 
-mv voldemorts.py /usr/local/bin
+sudo mv voldemorts.py /usr/local/bin
 
-echo "Done !"
+echo "\n\nDone !"
 
