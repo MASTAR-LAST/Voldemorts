@@ -22,3 +22,4 @@ voldemorts.py [folder name] --encrypt --salt-size 128
 ```
 ## Note
 **use this tool in super user mood.**
+![Screenshot](https://github.com/MASTAR-LAST/Voldemorts/assets/79379000/52294bc0-9f3e-4a89-94e0-bf4d57932594)
