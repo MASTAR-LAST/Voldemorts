@@ -4,6 +4,8 @@ import cryptography
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
+from rich.progress import track
+
 import os
 import typing
 import platform
@@ -209,23 +211,26 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
         except TypeError:
             print(f"{colorama.Fore.RED}There is no file have this name in your system.{colorama.Fore.RESET}")
             exit(1)
+    try:
+        for element in os.listdir(path=path_):
 
-    for element in os.listdir(path=path_):
+            if skipped != None:
+                if element in [file_ for file_ in skipped]:  # ["voldemorts.py", "salt.salt", "password.txt"]
+                    continue
 
-        if skipped != None:
-            if element in [file_ for file_ in skipped]:  # ["voldemorts.py", "salt.salt", "password.txt"]
+            if element in ["voldemorts.py", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}salt.salt"]:
                 continue
-
-        if element in ["voldemorts.py", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}salt.salt"]:
-            continue
-        
-        element = os.path.join(path_, element)
             
-        if os.path.isfile(element):
-            temp_files.append(element)
+            element = os.path.join(path_, element)
+                
+            if os.path.isfile(element):
+                temp_files.append(element)
 
-        if os.path.isdir(element):
-            temp_dirs.append(element)
+            if os.path.isdir(element):
+                temp_dirs.append(element)
+    except TypeError:
+        print(f"{colorama.Fore.RED}There is no folder that have this name in your system.{colorama.Fore.RESET}")
+
 
     for i in range(len(temp_files)):
         files.append(temp_files[i])
@@ -300,7 +305,7 @@ if __name__ == "__main__":
                 try:
                     result_ = input(f"{colorama.Fore.YELLOW}You did not set a salt size, so it well be {colorama.Fore.MAGENTA}16{colorama.Fore.YELLOW} as a defult value, {colorama.Fore.CYAN}Did you want to continue {colorama.Fore.MAGENTA}[{colorama.Fore.GREEN}y{colorama.Fore.YELLOW}/{colorama.Fore.RED}N{colorama.Fore.MAGENTA}]{colorama.Fore.WHITE}? {colorama.Fore.RESET}")
                     if result_.lower() in ['y', 'yes', 'yeah']:
-                        key: bytes = generate_key(password, load_existing_salt=True)
+                        key: bytes = generate_key(password, salt_size=16, save_salt=True)
                     else:
                         print(f"{colorama.Fore.BLUE}Rerun this program again if you want to encrypt anything without this mistake !{colorama.Fore.RESET}")
                         exit(0)
