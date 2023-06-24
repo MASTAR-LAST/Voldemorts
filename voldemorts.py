@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 import os
 import typing
 import platform
+import hashlib
 import secrets
 import base64
 import getpass
@@ -42,12 +43,12 @@ def derive_key(salt, password):
     return kdf.derive(password.encode())
 
 
-def load_salt():
+def load_salt(filename):
     # load salt from salt.salt file
-    return open(".salt.salt", "rb").read()
+    return open(f".{filename}.salt", "rb").read()
 
 
-def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=True):
+def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=True, filename='ex'):
     """
     Generates a key from a `password` and the salt.
     If `load_existing_salt` is True, it'll load the salt from a file
@@ -55,13 +56,16 @@ def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=Tru
     If `save_salt` is True, then it will generate a new salt
     and save it to "salt.salt"
     """
+    filename = hashlib.md5((filename+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()
+
     if load_existing_salt:
         # load existing salt
-        salt = load_salt()
+        salt = load_salt(filename)
     elif save_salt:
+        
         # generate new salt and save it
         salt = generate_salt(salt_size)
-        with open(".salt.salt", "wb") as salt_file:
+        with open(f".{filename}.salt", "wb") as salt_file:
             salt_file.write(salt)
     # generate the key from the salt and the password
     derived_key = derive_key(salt, password)
@@ -161,18 +165,18 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
                 path_ = repeted_dirs
 
         if len(path_) > 1 and type(path_) == list:
-            print(f"""There a {len(repeted_dirs)} file that have the same name of {input_copy_path}.""")
+            print(f"""{colorama.Fore.GREEN}There a {colorama.Fore.MAGENTA}{len(repeted_dirs)} {colorama.Fore.GREEN}file that have the same name of {colorama.Fore.CYAN}{input_copy_path}{colorama.Fore.GREEN}.{colorama.Fore.RESET}""")
             i: int = 1
             for dir in repeted_dirs:
                 if i == 1:
-                    print(f"\n    {i}. The {input_copy_path} in [  {dir}  ] folder")
+                    print(f"\n    {colorama.Fore.GREEN}{i}. The {colorama.Fore.CYAN}{input_copy_path} {colorama.Fore.GREEN}in [  {colorama.Fore.LIGHTCYAN_EX}{dir} {colorama.Fore.GREEN} ] folder{colorama.Fore.RESET}")
                     i += 1
                     continue
-                print(f"    {i}. The {input_copy_path} in [  {dir}  ] folder")
+                print(f"    {colorama.Fore.GREEN}{i}. The {colorama.Fore.CYAN}{input_copy_path} {colorama.Fore.GREEN}in [  {colorama.Fore.LIGHTCYAN_EX}{dir}  {colorama.Fore.GREEN}] folder{colorama.Fore.RESET}")
                 i += 1
-            print(f"    {i}. All of them\n")
+            print(f"    {colorama.Fore.GREEN}{i}. All of them\n")
             try:
-                response: int = int(input('Choose one of the available options by passing it\'s number: '))
+                response: int = int(input(f'{colorama.Fore.YELLOW}Choose one of the available options by passing it\'s number: {colorama.Fore.RESET}'))
                 response -= 1
             except ValueError or UnboundLocalError:
                 print(f"\n\n{colorama.Fore.RED}This is not in the valed.{colorama.Fore.RESET}\n")
@@ -198,7 +202,7 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
     if is_file:
         try:
             if os.path.isfile(path_):
-                if path_ in ["voldemorts.py", ".salt.salt"]:
+                if path_ in ["voldemorts.py", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}salt.salt"]:
                     print(f"{colorama.Fore.RED}This file cannot be encrypted/decrypted{colorama.Fore.RESET}")
                     exit(1)
                 return path_
@@ -212,7 +216,7 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
             if element in [file_ for file_ in skipped]:  # ["voldemorts.py", "salt.salt", "password.txt"]
                 continue
 
-        if element in ["voldemorts.py", ".salt.salt"]:
+        if element in ["voldemorts.py", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}salt.salt"]:
             continue
         
         element = os.path.join(path_, element)
@@ -252,7 +256,7 @@ if __name__ == "__main__":
                         help="Whether to encrypt the file, only -e or -d can be specified.")
     parser.add_argument("-d", "--decrypt", action="store_true",
                         help="Whether to decrypt the file, only -e or -d can be specified.")
-    parser.add_argument("-i", "--is-around", help="If is around, the tool will encrypt/decrypt all the files that is with it in the same folder", type=bool)
+    parser.add_argument("-a", "--is-around", action="store_true", help="If is around, the tool will encrypt/decrypt all the files that is with it in the same folder")
     parser.add_argument("-S", "--skipped", help="If there is any file you want to ignored it", type=list[str])
     parser.add_argument("-f", "--is-file", action="store_true", help="If the path is for a file")
 
@@ -279,10 +283,10 @@ if __name__ == "__main__":
 
         if args.decrypt:
 
-            result = input(f"{colorama.Fore.YELLOW}If you set a new salt during the decryption process, this will cause the loss of the old salt that this file was encrypted with, and you will not be able to decrypt it. {colorama.Fore.MAGENTA}Do you want to continue like this[Y/n]?{colorama.Fore.RESET} ")
+            result = input(f"{colorama.Fore.YELLOW}If you set a new salt during the decryption process, this will cause the loss of the old salt that this file was encrypted with, and you will not be able to decrypt it. {colorama.Fore.MAGENTA}Do you want to continue like this{colorama.Fore.MAGENTA}[{colorama.Fore.GREEN}y{colorama.Fore.YELLOW}/{colorama.Fore.RED}N{colorama.Fore.MAGENTA}]{colorama.Fore.WHITE}? {colorama.Fore.RESET}")
 
             if result.lower() in ['y', 'yes', 'yeah']:
-                key: bytes = generate_key(password, salt_size=args.salt_size, save_salt=True)
+                key: bytes = generate_key(password, salt_size=args.salt_size, save_salt=True, filename=folder)
 
             else:
                 print(f"{colorama.Fore.BLUE}Rerun this program again if you want to encrypt anything without this mistake !{colorama.Fore.RESET}")
@@ -292,7 +296,20 @@ if __name__ == "__main__":
 
     else:
         try:
-            key: bytes = generate_key(password, load_existing_salt=True)
+            if args.encrypt:
+                try:
+                    result_ = input(f"{colorama.Fore.YELLOW}You did not set a salt size, so it well be {colorama.Fore.MAGENTA}16{colorama.Fore.YELLOW} as a defult value, {colorama.Fore.CYAN}Did you want to continue {colorama.Fore.MAGENTA}[{colorama.Fore.GREEN}y{colorama.Fore.YELLOW}/{colorama.Fore.RED}N{colorama.Fore.MAGENTA}]{colorama.Fore.WHITE}? {colorama.Fore.RESET}")
+                    if result_.lower() in ['y', 'yes', 'yeah']:
+                        key: bytes = generate_key(password, load_existing_salt=True)
+                    else:
+                        print(f"{colorama.Fore.BLUE}Rerun this program again if you want to encrypt anything without this mistake !{colorama.Fore.RESET}")
+                        exit(0)
+                except KeyboardInterrupt:
+                    print(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
+                    exit(1)
+            else:
+                key: bytes = generate_key(password, load_existing_salt=True)
+            
         except NameError:
             print(f"\n{colorama.Fore.RED}Please specify whether you want to encrypt the file or decrypt it.{colorama.Fore.RESET}")
             exit(1)
