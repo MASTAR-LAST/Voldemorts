@@ -148,7 +148,7 @@ def not_around(gpath, home_path) -> list[str]:
     dirs_for_filter: list[str] = []
     files_for_filter: list[str] = []
     try:
-        for root, Gdir, Gfiles in os.walk(home_path):
+        for root, Gdir, Gfiles in track(os.walk(home_path), "Searching...", show_speed=False, update_period=0.01):
                 for i in range(len(Gdir)):
                     if Gdir[i] in [gpath.split('/')[-1]]:
 
@@ -162,6 +162,7 @@ def not_around(gpath, home_path) -> list[str]:
                         gpath: str = root[0:] + '/' + Gfiles[i]
                         prossesed_copy_path: str = gpath
                         files_for_filter.append(prossesed_copy_path)
+        print()
 
         return dirs_for_filter, files_for_filter
     except KeyboardInterrupt:
