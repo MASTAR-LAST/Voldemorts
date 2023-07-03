@@ -8,6 +8,19 @@ Voldemorts, It is a powerful tool capable of encrypting files in various formats
 | Linux   | Supported        |
 | Mac   | Not Sure Yet        |
 
+# Supported Files formats
+| Type      | Foramts |
+| :----------- | :-----------: |
+| Documents      | .doc .docx .odp .ods .odt .pdf .pptx .rtf .xls .xlsx .ppt .djvu .ott .txt .csv .srt|
+| E-Books   | .azw3 .equb .fb2 .lrf .mobi .snb |
+| Programming   | .bat .htaccess .yaml .class .cs .css .go .h .html .js .pl .py .rb .sh .sql .swift .test .vb .java .c .cpp .kml .json|
+| Videos   | No test yet |
+| Fonts    | No test yet |
+| Images   | No test yet |
+| Audios   | No test yet |
+
+
+
 ## Installation
 Install the tool with git
 
