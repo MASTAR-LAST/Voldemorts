@@ -12,7 +12,7 @@ Voldemorts, It is a powerful tool capable of encrypting files in various formats
 | Type      | Foramts |
 | :----------- | :-----------: |
 | Documents      | .doc .docx .odp .ods .odt .pdf .pptx .rtf .xls .xlsx .ppt .djvu .ott .txt .csv .srt|
-| E-Books   | .azw3 .equb .fb2 .lrf .mobi .snb |
+| E-Books   | .azw3 .equb .fb2 .lrf .mobi .snb .pdb |
 | Programming   | .bat .htaccess .yaml .class .cs .css .go .h .html .js .pl .py .rb .sh .sql .swift .test .vb .java .c .cpp .kml .json|
 | Videos   | .asf .avi .f4v .flv .hevc .m2ts .m2v .m4v .mjpeg .mkv .mov .mp4 mpeg .mpg .mts .mxf .ogv .swf .ts .vob .webm .wmv .wtv .3gp |
 | Fonts    | .bin .cff .dfont .otf .pfb .ps .sfd .ttf .woff |
