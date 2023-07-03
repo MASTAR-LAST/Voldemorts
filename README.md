@@ -18,7 +18,7 @@ Voldemorts, It is a powerful tool capable of encrypting files in various formats
 | Fonts    | .bin .cff .dfont .otf .pfb .ps .sfd .ttf .woff |
 | Images   | .bmp .svg .jpg .tif .gif .png .cr2 .dng .erf .heic .heif .jfif .jp2 .nef .nrw .orf .pef .pes .raf .rw2 .webp .cur .dds .exr .fts .hdr .ico .jpe .jps .mng .pam .pbm .pcd .pcx .pfm .pgm .pico .pict .pnm .ppm .psd .ras .sfw .sgi .tga .wbmp .wpg .x3f .xbm .xcf .xpm .xwd |
 | Audios   | No tests yet |
-| Extra Formats  | .exe .dll .ocx .exe .drv |
+| Extra Formats  | .exe .dll .ocx .drv |
 
 
 
