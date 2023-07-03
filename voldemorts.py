@@ -203,7 +203,7 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
             if is_file:
                 
                 if type(search_from) == str:
-                    search_from = '/home'
+                    search_from = f'{search_from}'
                     repeted_dirs = not_around(path, search_from)[1]
                     path_ = repeted_dirs
                 else:
@@ -211,7 +211,7 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
                     exit(1)
             else:
                 if type(search_from) == str:
-                    search_from = '/home'
+                    search_from = f'{search_from}'
                     repeted_dirs = not_around(path, search_from)[0]
                     path_ = repeted_dirs
                 else:
@@ -389,7 +389,7 @@ if __name__ == "__main__":
         if args.is_around:
             
             if args.skipped:
-                for _file in filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point)[1]:
+                for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point)[1], description="Encrypting..."):
                     encrypt(_file, key)
                     replace_encoding_text(_file, 'encrypted')
             if is_file_:
@@ -397,12 +397,12 @@ if __name__ == "__main__":
                 encrypt(_file, key)
                 replace_encoding_text(_file, 'encrypted')
             else:
-                for _file in filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)[1]:
+                for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)[1], description="Encrypting..."):
                     encrypt(_file, key)
                     replace_encoding_text(_file, 'encrypted')
 
         elif args.skipped:
-            for _file in filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point)[1]:
+            for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point)[1], description="Encrypting..."):
                     encrypt(_file, key)
                     replace_encoding_text(_file, 'encrypted')
         else:
@@ -411,23 +411,24 @@ if __name__ == "__main__":
                 encrypt(_file, key)
                 replace_encoding_text(_file, 'encrypted')
             else:
-                for _file in filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point)[1]:
+                for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point)[1], description="Encrypting..."):
                         encrypt(_file, key)
                         replace_encoding_text(_file, 'encrypted')
 
-        sprint(f"{colorama.Fore.LIGHTGREEN_EX}File Encrypted successfully{colorama.Fore.RESET}")
+        sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Encrypted successfully{colorama.Fore.RESET}")
 
     elif decrypt_:
         if args.is_around:
             
             if args.skipped:
-                            for _file in filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point)[1]:
+                            for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point)[1], description="decrypting..."):
                                 replace_encoding_text(_file, 'decrypted')
-                                if decrypt(_file, key):
-                                    print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
-                                else:
+                                if not decrypt(_file, key):
+                                #     print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
+                                # else:
                                     sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                                     exit(1)
+                            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
             if is_file_:
                 _file = filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point)
                 replace_encoding_text(_file, 'decrypted')
@@ -436,23 +437,27 @@ if __name__ == "__main__":
                 else:
                     sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                     exit(1)
+                sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
+
             else:
-                for _file in filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)[1]:
+                for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)[1], description="decrypting..."):
                         replace_encoding_text(_file, 'decrypted')
                         if decrypt(_file, key):
                             print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
                         else:
                             sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                             exit(1)
+                sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
                     
         elif args.skipped:
-            for _file in filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point)[1]:
+            for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point)[1], description="decrypting..."):
                     replace_encoding_text(_file, 'decrypted')
-                    if decrypt(_file, key):
-                        print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
-                    else:
+                    if not decrypt(_file, key):
+                    #     print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
+                    # else:
                         sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                         exit(1)
+            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
         else:
             if is_file_:
                 _file = filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point)
@@ -462,14 +467,17 @@ if __name__ == "__main__":
                 else:
                     sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                     exit(1)
+                sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
+
             else:
-                for _file in filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point)[1]:
+                for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point)[1], description="decrypting..."):
                         replace_encoding_text(_file, 'decrypted')
-                        if decrypt(_file, key):
-                            print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
-                        else:
+                        if not decrypt(_file, key):
+                        #     print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
+                        # else:
                             sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                             exit(1)
+                sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
     else:
          sprint(f"{colorama.Fore.RED}Please specify whether you want to encrypt the file or decrypt it.{colorama.Fore.RESET}")
          exit(1)
