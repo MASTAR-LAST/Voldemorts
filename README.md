@@ -15,9 +15,10 @@ Voldemorts, It is a powerful tool capable of encrypting files in various formats
 | E-Books   | .azw3 .equb .fb2 .lrf .mobi .snb |
 | Programming   | .bat .htaccess .yaml .class .cs .css .go .h .html .js .pl .py .rb .sh .sql .swift .test .vb .java .c .cpp .kml .json|
 | Videos   | .asf .avi .f4v .flv .hevc .m2ts .m2v .m4v .mjpeg .mkv .mov .mp4 mpeg .mpg .mts .mxf .ogv .swf .ts .vob .webm .wmv .wtv .3gp |
-| Fonts    | No tests yet |
+| Fonts    | .bin .cff .dfont .otf .pfb .ps .sfd .ttf .woff |
 | Images   | .bmp .svg .jpg .tif .gif .png .cr2 .dng .erf .heic .heif .jfif .jp2 .nef .nrw .orf .pef .pes .raf .rw2 .webp .cur .dds .exr .fts .hdr .ico .jpe .jps .mng .pam .pbm .pcd .pcx .pfm .pgm .pico .pict .pnm .ppm .psd .ras .sfw .sgi .tga .wbmp .wpg .x3f .xbm .xcf .xpm .xwd |
 | Audios   | No tests yet |
+| Extra Formats  | No tests yet |
 
 
 
