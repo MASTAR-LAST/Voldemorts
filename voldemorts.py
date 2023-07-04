@@ -144,23 +144,23 @@ def show_search_infomation(name, type_, start_path):
     sprint(f"[{colorama.Fore.LIGHTCYAN_EX}+{colorama.Fore.RESET}] {colorama.Style.BRIGHT}search from path: {colorama.Fore.CYAN}{start_path}{colorama.Fore.RESET}{colorama.Style.RESET_ALL}")
     sprint(f"[{colorama.Fore.LIGHTCYAN_EX}+{colorama.Fore.RESET}] {colorama.Style.BRIGHT}current date: {colorama.Fore.CYAN}{date:%y.%m.%d %H:%M:%S}{colorama.Fore.RESET}{colorama.Style.RESET_ALL}\n")
 
-def not_around(gpath, home_path) -> list[str]:
+def not_around(g_path, home_path):
     dirs_for_filter: list[str] = []
     files_for_filter: list[str] = []
     try:
         for root, Gdir, Gfiles in track(os.walk(home_path), "Searching...", show_speed=False, update_period=0.01):
                 for i in range(len(Gdir)):
-                    if Gdir[i] in [gpath.split('/')[-1]]:
+                    if Gdir[i] in [g_path.split('/')[-1]]:
 
-                        gpath: str = root[0:] + '/' + Gdir[i]
-                        prossesed_copy_path: str = gpath
+                        g_path: str = root[0:] + '/' + Gdir[i]
+                        prossesed_copy_path: str = g_path
                         dirs_for_filter.append(prossesed_copy_path)
 
                 for i in range(len(Gfiles)):
-                    if Gfiles[i] in [gpath.split('/')[-1]]:
+                    if Gfiles[i] in [g_path.split('/')[-1]]:
 
-                        gpath: str = root[0:] + '/' + Gfiles[i]
-                        prossesed_copy_path: str = gpath
+                        g_path: str = root[0:] + '/' + Gfiles[i]
+                        prossesed_copy_path: str = g_path
                         files_for_filter.append(prossesed_copy_path)
         print()
 
@@ -170,7 +170,7 @@ def not_around(gpath, home_path) -> list[str]:
         exit(1)
 
 first_time: int = 1
-def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[None, list[str]] =None, is_file: bool = False, search_from = '/home'):
+def filter(arg_path = WD, *, is_around =True, skipped=None, is_file= False, search_from = '/home'):
 
     global first_time
 
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--decrypt", action="store_true",
                         help="Whether to decrypt the file, only -e or -d can be specified.")
     parser.add_argument("-a", "--is-around", action="store_true", help="If is around, the tool will encrypt/decrypt all the files that is with it in the same folder")
-    parser.add_argument("-s", "--skipped", help="If there is any file you want to ignored it", type=list[str])
+    parser.add_argument("-s", "--skipped", help="If there is any file you want to ignored it", type=str)
     parser.add_argument("-f", "--is-file", action="store_true", help="If the path is for a file")
     parser.add_argument("-Sp", "--start-point", help="Determine the starting path of the search, take a path '/home' as default", type=str)
 
