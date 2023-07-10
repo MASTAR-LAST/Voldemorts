@@ -5,7 +5,10 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
 from rich.progress import track
-
+from colorfull import red, blue, purple, water
+from subprocess import check_output
+from slayer import secend_layer_encryption,\
+                   secend_layer_decryption
 import os
 import typing
 import platform
@@ -186,8 +189,10 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
     temp_dirs: list[str] = []
     repeted_dirs: list[str] = []
 
-    if search_from == None:
+    if search_from == None and not is_around:
         search_from = '/home'
+    else:
+        search_from = check_output('pwd').decode('utf-8').strip().replace("\\", " ")
     
     if first_time == 1:
 
@@ -392,28 +397,34 @@ if __name__ == "__main__":
                 for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point)[1], description="Encrypting..."):
                     encrypt(_file, key)
                     replace_encoding_text(_file, 'encrypted')
+                    secend_layer_encryption(key, _file)
             if is_file_:
                 _file = filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point)
                 encrypt(_file, key)
                 replace_encoding_text(_file, 'encrypted')
+                secend_layer_encryption(key, _file)
             else:
                 for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)[1], description="Encrypting..."):
                     encrypt(_file, key)
                     replace_encoding_text(_file, 'encrypted')
+                    secend_layer_encryption(key, _file)
 
         elif args.skipped:
             for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point)[1], description="Encrypting..."):
                     encrypt(_file, key)
                     replace_encoding_text(_file, 'encrypted')
+                    secend_layer_encryption(key, _file)
         else:
             if is_file_:
                 _file = filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point)
                 encrypt(_file, key)
                 replace_encoding_text(_file, 'encrypted')
+                secend_layer_encryption(key, _file)
             else:
                 for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point)[1], description="Encrypting..."):
                         encrypt(_file, key)
                         replace_encoding_text(_file, 'encrypted')
+                        secend_layer_encryption(key, _file)
 
         sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Encrypted successfully{colorama.Fore.RESET}")
 
@@ -422,6 +433,7 @@ if __name__ == "__main__":
             
             if args.skipped:
                             for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point)[1], description="decrypting..."):
+                                secend_layer_decryption(key, _file)
                                 replace_encoding_text(_file, 'decrypted')
                                 if not decrypt(_file, key):
                                 #     print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
@@ -431,6 +443,7 @@ if __name__ == "__main__":
                             sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
             if is_file_:
                 _file = filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point)
+                secend_layer_decryption(key, _file)
                 replace_encoding_text(_file, 'decrypted')
                 if decrypt(_file, key):
                     sprint(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
@@ -441,6 +454,7 @@ if __name__ == "__main__":
 
             else:
                 for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)[1], description="decrypting..."):
+                        secend_layer_decryption(key, _file)
                         replace_encoding_text(_file, 'decrypted')
                         if decrypt(_file, key):
                             print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
@@ -451,6 +465,7 @@ if __name__ == "__main__":
                     
         elif args.skipped:
             for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point)[1], description="decrypting..."):
+                    secend_layer_decryption(key, _file)
                     replace_encoding_text(_file, 'decrypted')
                     if not decrypt(_file, key):
                     #     print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
@@ -461,6 +476,7 @@ if __name__ == "__main__":
         else:
             if is_file_:
                 _file = filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point)
+                secend_layer_decryption(key, _file)
                 replace_encoding_text(_file, 'decrypted')
                 if decrypt(_file, key):
                     print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
@@ -471,6 +487,7 @@ if __name__ == "__main__":
 
             else:
                 for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point)[1], description="decrypting..."):
+                        secend_layer_decryption(key, _file)
                         replace_encoding_text(_file, 'decrypted')
                         if not decrypt(_file, key):
                         #     print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
