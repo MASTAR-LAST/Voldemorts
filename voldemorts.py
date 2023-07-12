@@ -5,7 +5,6 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 
 from rich.progress import track
-from colorfull import red, blue, purple, water
 from subprocess import check_output
 from slayer import secend_layer_encryption,\
                    secend_layer_decryption
