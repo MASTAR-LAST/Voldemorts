@@ -3,12 +3,14 @@
 import cryptography
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+from Crypto.Random import get_random_bytes
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
 
 from rich.progress import track
-from colorfull import red, blue, purple, water
 from subprocess import check_output
-from slayer import secend_layer_encryption,\
-                   secend_layer_decryption
+
 import os
 import typing
 import platform
@@ -44,6 +46,44 @@ dirs: list[str] = []
 
 OS_NAME: str = platform.system()
 WD: str = os.getcwd()
+
+def secend_layer_encryption(password, filename):
+    try:
+        salt = b'\x15\x0b_\xfd\x84"P\x8cp3r\xceY\xc2I\x07'
+
+        key = PBKDF2(password, salt, dkLen=16)
+
+        with open(filename, "rb") as file:
+            file_data = file.read()
+
+            cipher = AES.new(key, AES.MODE_CBC)
+            ciphered_data = cipher.encrypt(pad(file_data, AES.block_size))
+
+        with open(filename, 'wb') as _file:
+            _file.write(salt + cipher.iv + ciphered_data)
+    except:
+        sprint(f"{colorama.Fore.RED}Something goes wrong !!{colorama.Fore.RESET}")
+        exit(1)
+
+def secend_layer_decryption(password, filename):
+    try:
+        with open(filename, 'rb') as encryptfile:
+            file_data = encryptfile.read()
+
+            salt = file_data[:16]
+            iv = file_data[16:32]
+            decrypt_data = file_data[32:]
+
+            key = PBKDF2(password, salt, dkLen=16)
+
+            cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+            original_data = unpad(cipher.decrypt(decrypt_data), AES.block_size)
+
+        with open(filename, 'wb') as _encryptfile:
+            _encryptfile.write(original_data)
+    except:
+        sprint(f"{colorama.Fore.RED}Something goes wrong !!{colorama.Fore.RESET}")
+        exit(1)
 
 def generate_salt(size=16):
     """Generate the salt used for key derivation, 
@@ -91,15 +131,28 @@ def encrypt(filename, key):
     """
     Given a filename (str) and key (bytes), it encrypts the file and write it
     """
-    fernetkey = Fernet(key)
-    with open(filename, "rb") as file:
-        # read all file data
-        file_data = file.read()
-    # encrypt data
-    encrypted_data = fernetkey.encrypt(file_data)
-    # write the encrypted file
-    with open(filename, "wb") as file:
-        file.write(encrypted_data)
+    if type(filename) != str:
+        for filename_ in filename:
+            fernetkey = Fernet(key)
+            with open(filename, "rb") as file:
+                # read all file data
+                file_data = file.read()
+            # encrypt data
+            encrypted_data = fernetkey.encrypt(file_data)
+            # write the encrypted file
+            with open(filename, "wb") as file:
+                file.write(encrypted_data)
+    else:
+        for filename_ in filename:
+                fernetkey = Fernet(key)
+                with open(filename, "rb") as file:
+                    # read all file data
+                    file_data = file.read()
+                # encrypt data
+                encrypted_data = fernetkey.encrypt(file_data)
+                # write the encrypted file
+                with open(filename, "wb") as file:
+                    file.write(encrypted_data)
 
 
 def decrypt(filename, key):
@@ -173,9 +226,11 @@ def not_around(gpath, home_path) -> list[str]:
         exit(1)
 
 first_time: int = 1
+all_dirs: bool = False
+
 def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[None, list[str]] =None, is_file: bool = False, search_from = '/home'):
 
-    global first_time
+    global first_time, all_dirs
 
     
 
@@ -191,7 +246,8 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
 
     if search_from == None and not is_around:
         search_from = '/home'
-    else:
+
+    if search_from == None and  is_around:
         search_from = check_output('pwd').decode('utf-8').strip().replace("\\", " ")
     
     if first_time == 1:
@@ -250,7 +306,8 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
                 exit(1)
 
             try:
-                path_ = repeted_dirs[response]
+                if not all_dirs:
+                    path_ = repeted_dirs[response]
 
             except IndexError:
                 sprint(f"\n\n{colorama.Fore.RED}This is not in the valed.{colorama.Fore.RESET}\n")
@@ -260,33 +317,64 @@ def filter(arg_path: str = WD, *, is_around: bool =True, skipped: typing.Union[N
                 path_ = path_[0]
     if is_file:
         try:
-            if os.path.isfile(path_):
-                if path_ in ["voldemorts.py", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}salt.salt"]:
-                    sprint(f"{colorama.Fore.RED}This file cannot be encrypted/decrypted{colorama.Fore.RESET}")
-                    exit(1)
-                return path_
+            if not all_dirs:
+                if os.path.isfile(path_):
+                    if path_ in ["voldemorts.py", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}salt.salt"]:
+                        sprint(f"{colorama.Fore.RED}This file cannot be encrypted/decrypted{colorama.Fore.RESET}")
+                        exit(1)
+                    return path_
+            if all_dirs:
+                files_temp: list[str] = []
+                for each_file in temp_dirs_list_for_all_dirs_opt:
+
+                    if os.path.isfile(each_file):
+                        if each_file in ["voldemorts.py", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}salt.salt"]:
+                            sprint(f"{colorama.Fore.RED}This file cannot be encrypted/decrypted{colorama.Fore.RESET}")
+                            exit(1)
+                        files_temp.append(each_file)
+                        return files_temp
         except TypeError:
             sprint(f"{colorama.Fore.RED}There is no file that have this name in your system.{colorama.Fore.RESET}")
             time.sleep(0.4)
             sprint(f"\n{colorama.Fore.YELLOW}Check the path that you insert if you do.{colorama.Fore.RESET}")
             exit(1)
     try:
-        for element in os.listdir(path=path_):
+        if not all_dirs:
+            for element in os.listdir(path=path_):
 
-            if skipped != None:
-                if element in [file_ for file_ in skipped]:  # ["voldemorts.py", "salt.salt", "password.txt"]
+                if skipped != None:
+                    if element in [file_ for file_ in skipped]:  # ["voldemorts.py", "salt.salt", "password.txt"]
+                        continue
+
+                if element in ["voldemorts.py", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}salt.salt"]:
                     continue
-
-            if element in ["voldemorts.py", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}salt.salt"]:
-                continue
-            
-            element = os.path.join(path_, element)
                 
-            if os.path.isfile(element):
-                temp_files.append(element)
+                element = os.path.join(path_, element)
+                    
+                if os.path.isfile(element):
+                    temp_files.append(element)
 
-            if os.path.isdir(element):
-                temp_dirs.append(element)
+                if os.path.isdir(element):
+                    temp_dirs.append(element)
+
+        if all_dirs:
+            for eche_dir in all_dirs:
+                for element in os.listdir(path=eche_dir):
+
+                    if skipped != None:
+                        if element in [file_ for file_ in skipped]:  # ["voldemorts.py", "salt.salt", "password.txt"]
+                            continue
+
+                    if element in ["voldemorts.py", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}salt.salt"]:
+                        continue
+                    
+                    element = os.path.join(path_, element)
+                        
+                    if os.path.isfile(element):
+                        temp_files.append(element)
+
+                    if os.path.isdir(element):
+                        temp_dirs.append(element)
     except TypeError:
         print(f"{colorama.Fore.RED}There is no folder that have this name in your system.{colorama.Fore.RESET}")
 
@@ -399,10 +487,19 @@ if __name__ == "__main__":
                     replace_encoding_text(_file, 'encrypted')
                     secend_layer_encryption(key, _file)
             if is_file_:
-                _file = filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point)
-                encrypt(_file, key)
-                replace_encoding_text(_file, 'encrypted')
-                secend_layer_encryption(key, _file)
+
+                if not all_dirs:
+                    _file = filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point)
+                    encrypt(_file, key)
+                    replace_encoding_text(_file, 'encrypted')
+                    secend_layer_encryption(key, _file)
+                
+                if all_dirs:
+                    for _file in track(filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point), description="Encrypting..."):
+                        encrypt(_file, key)
+                        replace_encoding_text(_file, 'encrypted')
+                        secend_layer_encryption(key, _file)
+
             else:
                 for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)[1], description="Encrypting..."):
                     encrypt(_file, key)
@@ -416,10 +513,19 @@ if __name__ == "__main__":
                     secend_layer_encryption(key, _file)
         else:
             if is_file_:
-                _file = filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point)
-                encrypt(_file, key)
-                replace_encoding_text(_file, 'encrypted')
-                secend_layer_encryption(key, _file)
+
+                if not all_dirs:
+                    _file = filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point)
+                    encrypt(_file, key)
+                    replace_encoding_text(_file, 'encrypted')
+                    secend_layer_encryption(key, _file)
+
+                if all_dirs:
+                    for _file in track(filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point), description="Encrypting..."):
+                        encrypt(_file, key)
+                        replace_encoding_text(_file, 'encrypted')
+                        secend_layer_encryption(key, _file)
+
             else:
                 for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point)[1], description="Encrypting..."):
                         encrypt(_file, key)
@@ -442,15 +548,27 @@ if __name__ == "__main__":
                                     exit(1)
                             sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
             if is_file_:
-                _file = filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point)
-                secend_layer_decryption(key, _file)
-                replace_encoding_text(_file, 'decrypted')
-                if decrypt(_file, key):
-                    sprint(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
-                else:
-                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
-                    exit(1)
-                sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
+                if not all_dirs:
+                    _file = filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point)
+                    secend_layer_decryption(key, _file)
+                    replace_encoding_text(_file, 'decrypted')
+                    if decrypt(_file, key):
+                        sprint(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
+                    else:
+                        sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
+                        exit(1)
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
+
+                if all_dirs:
+                    for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)[1], description="decrypting..."):
+                                secend_layer_decryption(key, _file)
+                                replace_encoding_text(_file, 'decrypted')
+                                if not decrypt(_file, key):
+                                #     print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
+                                # else:
+                                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
+                                    exit(1)
+                                sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
 
             else:
                 for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)[1], description="decrypting..."):
@@ -472,18 +590,31 @@ if __name__ == "__main__":
                     # else:
                         sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                         exit(1)
-            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
         else:
             if is_file_:
-                _file = filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point)
-                secend_layer_decryption(key, _file)
-                replace_encoding_text(_file, 'decrypted')
-                if decrypt(_file, key):
-                    print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
-                else:
-                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
-                    exit(1)
-                sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
+
+                if not all_dirs:
+                    _file = filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point)
+                    secend_layer_decryption(key, _file)
+                    replace_encoding_text(_file, 'decrypted')
+                    if decrypt(_file, key):
+                        print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
+                    else:
+                        sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
+                        exit(1)
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
+
+                if all_dirs:
+                    for _file in track(filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point)[1], description="decrypting..."):
+                        secend_layer_decryption(key, _file)
+                        replace_encoding_text(_file, 'decrypted')
+                        if decrypt(_file, key):
+                            print(f"{colorama.Fore.LIGHTGREEN_EX}[{_file.split('/')[-1]}] decrypted successfully{colorama.Fore.RESET}")
+                        else:
+                            sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
+                            exit(1)
+                        sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
 
             else:
                 for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point)[1], description="decrypting..."):
