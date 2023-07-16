@@ -32,7 +32,7 @@ git clone https://github.com/MASTAR-LAST/Voldemorts.git && cd Voldemorts && sudo
 ### Using instructions
 
 ```zsh
-sudo voldemorts.py [folder name] --encrypt --salt-size 128
+sudo voldemorts [folder name] --encrypt --salt-size 128
 ```
  
 ![ezgif com-video-to-gif](https://github.com/MASTAR-LAST/Voldemorts/assets/79379000/77043b1f-47ce-42a2-a938-59771095719d)
