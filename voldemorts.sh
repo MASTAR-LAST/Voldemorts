@@ -16,8 +16,10 @@ echo "Install packeges..."
 
 echo ""
 
-pip install cryptography
-pip install colorama
+sudo pip3 install cryptography
+sudo pip3 install colorama
+sudo pip3 install pycryptodome
+sudo pip3 install rich
 
 echo ""
 echo ""
@@ -27,8 +29,8 @@ echo "Build the tool..."
 echo ""
 
 sudo chmod u+x voldemorts.py
-sudo mv voldemorts.py /bin/voldemorts
-sudo mv slayar.py /bin/voldemorts
+sudo cp voldemorts.py /bin/voldemorts
+sudo mv voldemorts.py /usr/bin/voldemorts
 
 echo ""
 echo ""
