@@ -1,6 +1,7 @@
 # Voldemorts
 Voldemorts, It is a powerful tool capable of encrypting files in various formats with Fernet and AES encrypting with a salt with a default value of 16 bytes that can be changed and a password to encrypt and decrypt these files.
-![Screenshot](https://github.com/MASTAR-LAST/Voldemorts/assets/79379000/52294bc0-9f3e-4a89-94e0-bf4d57932594)
+![Screenshot_2023-08-03_01-48-16](https://github.com/MASTAR-LAST/Voldemorts/assets/79379000/9fffdab4-c3a2-4bd9-a432-f07213fd3050)
+
 # Supported systems
 | System       | Supporting    |
 | :----------- | :-----------: |
@@ -33,6 +34,39 @@ git clone https://github.com/MASTAR-LAST/Voldemorts.git && cd Voldemorts && sudo
 
 ```bash
 sudo voldemorts [folder name] --encrypt --salt-size 128
+```
+### Help
+```bash
+            (   (                              )     
+ (   (      )\  )\ )   (     )         (    ( /(     
+ )\  )\ (  ((_)(()/(  ))\   (      (   )(   )\())(   
+((_)((_))\  _   ((_))/((_)  )\  '  )\ (()\ (_))/ )\  
+\ \ / /((_)| |  _| |(_))  _((_))  ((_) ((_)| |_ ((_) 
+ \ V // _ \| |/ _` |/ -_)| '  \()/ _ \| '_||  _|(_-< 
+  \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ 
+                                                     
+A powrfull encryption tool made By Muhammed Alkohawaldeh
+usage: voldemorts [-h] [-Ss SALT_SIZE] [-e] [-d] [-a] [-s SKIPPED] [-f] [-Sp START_POINT] folder
+
+File Encryptor Script with a Password
+
+positional arguments:
+  folder                Folder to encrypt/decrypt
+
+options:
+  -h, --help            show this help message and exit
+  -Ss SALT_SIZE, --salt-size SALT_SIZE
+                        If this is set, a new salt with the passed size is generated, take 16 as default
+  -e, --encrypt         Whether to encrypt the file, only -e or -d can be specified.
+  -d, --decrypt         Whether to decrypt the file, only -e or -d can be specified.
+  -a, --is-around       If is around, the tool will encrypt/decrypt all the files that is with it in the same
+                        folder
+  -s SKIPPED, --skipped SKIPPED
+                        If there is any file you want to ignored it
+  -f, --is-file         If the path is for a file
+  -Sp START_POINT, --start-point START_POINT
+                        Determine the starting path of the search, take a path '/home' as default
+                                                                                                   
 ```
 
 ## Note
