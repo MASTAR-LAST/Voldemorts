@@ -141,68 +141,230 @@ dirs: list[str] = []
 OS_NAME: str = platform.system()
 WD: str = os.getcwd()
 
-def secend_layer_encryption(password, filename):
+def report_writer(
+        succeeded_files: Union[list[str], None] = None, 
+        failed_file:Union[str, None] = None, 
+        platform: str = OS_NAME, 
+        main: str = WD, 
+        algorithm_type: Union[str, None] = None,
+        algorithm_status: Union[str, None] = None,
+        error_message: Union[str, None] = None,
+        key: Union[str, None] = None
+        ) -> tuple[bool, str]:
+    """Write a report about the error in a file and make it in the dir that is run the tool from.
+
+    Args:
+        succeeded_files (Union[list[str], None], optional): _description_. Defaults to None.
+        failed_file (Union[str, None], optional): _description_. Defaults to None.
+        platform (str, optional): Operating System name. Defaults to OS_NAME.
+        main (str, optional): your current working directory. Defaults to WD.
+        algorithm_type (Union[str, None], optional): what is the algorithm that raise this error. Defaults to None.
+        algorithm_status (Union[str, None], optional): when the error happend while `Encryption` or `Decryption`. Defaults to None.
+        error_message (Union[str, None], optional): the full error message for the error. Defaults to None.
+        key (Union[str, None], optional): the Globale Encryption Key for the file, print just if the `algorithm_status` is `Decryption` only. Defaults to None.
+
+    Returns:
+        tuple[bool, str]: return the `True` if the report was written successfully with the `report path` else  return `False` and `Error` string.
+    """
+    try: 
+        report_file_name: str = f"{WD}/{algorithm_status}_{algorithm_type}_report.txt"
+        with open(f"{report_file_name}", "w") as report_file:
+
+            report_body = f"""Report:
+        General:
+            Platform: {platform}
+            Main Path: {main}
+            Time: {datetime.datetime.now(): "%Y/%m/%d, %H:%M:%S"}
+        
+        Error Information:
+            Failed: {failed_file} 
+            Success: {succeeded_files}
+            Encryption Algorithm: {algorithm_type}
+            Encryption Algorithm Status: {algorithm_status}
+
+            Error message:
+            --------Error Message Start--------
+                {error_message}
+            --------Error Message End--------
+
+        Reporting Resources:
+            Github: https://github.com/MASTAR-LAST/Voldemorts/issues
+            
+            Contacts Me:
+                Email: twisters50team@gmail.com
+                X: twisters50
+                
+Note: Please open a new issue in GitHub and attach with your report how it happened and where in detail
+                    """
+            if algorithm_status == 'Decryption':
+                # NOTE: Print the encryption key with the report
+                report_body = f"""Report:
+        General:
+            Platform: {platform}
+            Main Path: {main}
+            Time: {datetime.datetime.now(): "%Y/%m/%d, %H:%M:%S"}
+        
+        Error Information:
+            Failed: {failed_file} 
+            Success: {succeeded_files}
+            Encryption Algorithm: {algorithm_type}
+            Encryption Algorithm Status: {algorithm_status}
+
+            Error message:
+            --------Error Message Start--------
+                {error_message}
+            --------Error Message End--------
+            
+        Secret Data:
+            Encryption Key: [{key}], Note: the encryption key is all the text between [] and not [] themselves
+
+        Reporting Resources:
+            Github: https://github.com/MASTAR-LAST/Voldemorts/issues
+            
+            Contacts Me:
+                Email: twisters50team@gmail.com
+                X: twisters50
+
+Note: Please open a new issue in GitHub and attach with your report how it happened and where in detail
+                    """
+            report_file.write(report_body)
+
+            return (True, f"{report_file_name}")
+        
+    except Exception as error:
+        sprint(f"{colorama.Fore.RED}Unable to write the report, please try again in with sudo command.{colorama.Fore.RESET}")
+        sprint(f"{colorama.Fore.YELLOW}If nothing works please report at the link in messages,{colorama.Fore.RESET}")
+
+        return (False, "Error")
+        
+
+def second_layer_encryption(password: str, filename: str) -> Union[None, str]:
+    """Encrypt the file with AES encryption algorithm
+
+    Args:
+        password (str): the Global Encryption Key to encrypt the file with it 
+        filename (str): file path
+
+    Returns:
+        Union[None, str]: return `None` if there is an error and return `string` if everything is OK
+    """
+    encrypted_files: list[str] = []
+    filename = filename[1]
+    for filename_ in filename:
+        try:
+                salt = b'\x15\x0b_\xfd\x84"P\x8cp3r\xceY\xc2I\x07'
+
+                key = PBKDF2(password, salt, dkLen=16)
+
+                with open(filename_, "rb") as file:
+                    file_data = file.read()
+
+                    cipher = AES.new(key, AES.MODE_CBC)
+                    ciphered_data = cipher.encrypt(pad(file_data, AES.block_size))
+
+                with open(filename_, 'wb') as _file:
+                    _file.write(salt + cipher.iv + ciphered_data)
+                    encrypted_files.append(filename_)
+        except Exception as error:
+            sprint(f"{colorama.Fore.RED}Something goes wrong while encrypting the file `{filename_}` with AES algorithm.{colorama.Fore.RESET}", second=0.02)
+            sprint(f"{colorama.Fore.RED}Please report at https://github.com/MASTAR-LAST/Voldemorts/issues about this problem.{colorama.Fore.RESET}", second=0.02)
+            sprint(f"{colorama.Fore.YELLOW}Encryption process will stop at this point, We will write a report for this error.{colorama.Fore.RESET}", second=0.01)
+            Ok, report_path = report_writer(succeeded_files=encrypted_files, 
+                                            failed_file=filename_, 
+                                            algorithm_type='AES', 
+                                            algorithm_status='Encryption', 
+                                            error_message=error)
+            if Ok:
+                sprint(f"{colorama.Fore.YELLOW}Your report is ready in [{report_path}].{colorama.Fore.RESET}", second=0.01)
+                sprint(f"{colorama.Fore.YELLOW}The layers of encryption that have been set will be {colorama.Fore.GREEN}reversed before completion{colorama.Fore.YELLOW}, {colorama.Style.BRIGHT}Do not close the program or YOU WILL LOSE YOUR DATA{colorama.Style.RESET_ALL}.{colorama.Fore.RESET}", second=0.01)
+
+            return "reverse"
+
+
+def second_layer_decryption(password: str, filename: str) -> None:
+    """Decrypt the file with AES encryption algorithm
+
+    Args:
+        password (str): the Global Encryption Key to decrypt the file with it 
+        filename (str): file path
+    """
+    decrypted_files: list[str] = []
+    filename = filename[1]
     try:
-        salt = b'\x15\x0b_\xfd\x84"P\x8cp3r\xceY\xc2I\x07'
+        for filename_ in filename:
+            with open(filename_, 'rb') as encryptfile:
+                file_data = encryptfile.read()
 
-        key = PBKDF2(password, salt, dkLen=16)
+                salt = file_data[:16]
+                iv = file_data[16:32]
+                decrypt_data = file_data[32:]
 
-        with open(filename, "rb") as file:
-            file_data = file.read()
+                key = PBKDF2(password, salt, dkLen=16)
 
-            cipher = AES.new(key, AES.MODE_CBC)
-            ciphered_data = cipher.encrypt(pad(file_data, AES.block_size))
+                cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+                original_data = unpad(cipher.decrypt(decrypt_data), AES.block_size)
 
-        with open(filename, 'wb') as _file:
-            _file.write(salt + cipher.iv + ciphered_data)
-    except:
-        sprint(f"{colorama.Fore.RED}Something goes wrong !!{colorama.Fore.RESET}")
-        exit(1)
+            with open(filename_, 'wb') as _encryptfile:
+                _encryptfile.write(original_data)
+                decrypted_files.append(filename_)
+    except Exception as error:
+            sprint(f"{colorama.Fore.RED}Something goes wrong while decrypting the file `{filename_}` from AES algorithm.{colorama.Fore.RESET}", second=0.02)
+            sprint(f"{colorama.Fore.RED}Please report at https://github.com/MASTAR-LAST/Voldemorts/issues about this problem.{colorama.Fore.RESET}", second=0.02)
+            sprint(f"{colorama.Fore.YELLOW}Decryption process will stop at this point, We will write a report for this error.{colorama.Fore.RESET}", second=0.01)
+            Ok, report_path = report_writer(succeeded_files=decrypted_files,
+                                            failed_file=filename_, 
+                                            algorithm_type='AES', 
+                                            algorithm_status='Decryption', 
+                                            error_message=error,
+                                            key=key)
+            if Ok:
+                sprint(f"{colorama.Fore.YELLOW}Your report is ready in [{report_path}].{colorama.Fore.RESET}", second=0.01)
+            exit(1)
 
-def secend_layer_decryption(password, filename):
-    try:
-        with open(filename, 'rb') as encryptfile:
-            file_data = encryptfile.read()
+def generate_salt(size: int = 16) -> bytes:
+    """Generate the salt used for key derivation,`size` is the length of the salt to generate
 
-            salt = file_data[:16]
-            iv = file_data[16:32]
-            decrypt_data = file_data[32:]
+    Args:
+        size (int, optional): salte size. Defaults to 16.
 
-            key = PBKDF2(password, salt, dkLen=16)
-
-            cipher = AES.new(key, AES.MODE_CBC, iv=iv)
-            original_data = unpad(cipher.decrypt(decrypt_data), AES.block_size)
-
-        with open(filename, 'wb') as _encryptfile:
-            _encryptfile.write(original_data)
-    except:
-        sprint(f"{colorama.Fore.RED}Something goes wrong !!{colorama.Fore.RESET}")
-        exit(1)
-
-def generate_salt(size=16):
-    """Generate the salt used for key derivation, 
-    `size` is the length of the salt to generate"""
+    Returns:
+        bytes: return the salte as a bytes
+    """
     return secrets.token_bytes(size)
 
 
-def derive_key(salt, password):
-    """Derive the key from the `password` using the passed `salt`"""
+def derive_key(salt: bytes, password: str) -> bytes: # NOTE: Global Encryption Key AKA GEK.
+    """Derive the key from the `password` using the passed `salt`
+
+    Args:
+        salt (bytes): the salt to make a `Global Encryption Key` with it.
+        password (str): the password to make the `GEK` also.
+
+    Returns:
+        bytes: return the mix of password and salt
+    """
     kdf = Scrypt(salt=salt, length=32, n=2**14, r=8, p=1)
     return kdf.derive(password.encode())
 
 
-def load_salt(filename):
-    # load salt from salt.salt file
+def load_salt(filename) -> bytes:
+    # load salt from `hash_file_name`.salt file
     return open(f".{filename}.salt", "rb").read()
 
 
-def generate_key(password, salt_size=16, load_existing_salt=False, save_salt=True, filename='ex'):
-    """
-    Generates a key from a `password` and the salt.
-    If `load_existing_salt` is True, it'll load the salt from a file
-    in the current directory called "salt.salt".
-    If `save_salt` is True, then it will generate a new salt
-    and save it to "salt.salt"
+def generate_key(password: str, salt_size: int = 16, load_existing_salt: bool = False, save_salt: bool = True, filename: str = 'ex') -> bytes:
+    """Generates a key from a `password` and the salt, If `load_existing_salt` is True, it'll load the salt from a file
+    in the current directory called "salt.salt", If `save_salt` is True, then it will generate a new salt and save it to "salt.salt"
+
+    Args:
+        password (str): The password the to make `GEK` with
+        salt_size (int, optional): the salt size to make `GEK`. Defaults to 16.
+        load_existing_salt (bool, optional): If there is a file that have the past salt. Defaults to False.
+        save_salt (bool, optional): _description_. Defaults to True.
+        filename (str, optional): the salt file name. Defaults to 'ex'.
+
+    Returns:
+        bytes: return the Global Encryption Key aka GEK
     """
     filename = hashlib.md5((filename+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()
 
