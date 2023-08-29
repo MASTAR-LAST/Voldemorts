@@ -758,7 +758,7 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, l
                         temp_dirs.append(element)
     except TypeError:
         print(f"{colorama.Fore.RED}There is no folder that have this name in your system.{colorama.Fore.RESET}")
-
+        exit(1)
 
     for i in range(len(temp_files)):
         files.append(temp_files[i])
@@ -778,24 +778,79 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, l
         return dirs, files
 
     return temp_dirs, temp_files
+#  NOTE: reversing technique 
+def reveres_encryption(file_path: str, key: bytes, reverse_algorithm: Union[None, str]) -> None:
+    """Reveresing the encryption algorithms if one of them is faile.
 
+    Args:
+        file_path (str): the file that failes.
+        key (bytes): Globle Encryption Key.
+        reverse_algorithm (Union[None, str]): the algorithm that faile.
+    """
+    if reverse_algorithm.lower().strip() == 'aes':
+        replace_encoding_text(file_path, "decrypted")
+        decrypt(file_path, key)
+        exit(1)
+    elif reverse_algorithm.lower().strip() == 'fernet':
+        exit(1)
+    elif reverse_algorithm.lower().strip() == 'replacing':
+        decrypt(file_path, key)
+        exit(1)
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="""File Encryptor Script with a Password""")
-    parser.add_argument("folder", help="Folder to encrypt/decrypt")
+    parser = argparse.ArgumentParser(description="""File Encrypting Script with a Password""")
+
+    parser.add_argument("folder", help="Folder to encrypt/decrypt", nargs='?')
     parser.add_argument("-Ss", "--salt-size", help="If this is set, a new salt with the passed size is generated, take 16 as default", type=int)
-    parser.add_argument("-e", "--encrypt", action="store_true",
-                        help="Whether to encrypt the file, only -e or -d can be specified.")
-    parser.add_argument("-d", "--decrypt", action="store_true",
-                        help="Whether to decrypt the file, only -e or -d can be specified.")
+    parser.add_argument("-e", "--encrypt", action="store_true", help="Whether to encrypt the file, only -e or -d can be specified.")
+    parser.add_argument("-d", "--decrypt", action="store_true", help="Whether to decrypt the file, only -e or -d can be specified.")
     parser.add_argument("-a", "--is-around", action="store_true", help="If is around, the tool will encrypt/decrypt all the files that is with it in the same folder")
-    parser.add_argument("-s", "--skipped", help="If there is any file you want to ignored it", type=list[str])
+    parser.add_argument("-s", "--skipped", help="If there is any file you want to ignored it", nargs='*', type=list[str])
     parser.add_argument("-f", "--is-file", action="store_true", help="If the path is for a file")
     parser.add_argument("-Sp", "--start-point", help="Determine the starting path of the search, take a path '/home' as default", type=str)
+    parser.add_argument("-Vc", "--version-check", help="Check the tool version before the execution", action="store_true")
+    parser.add_argument("-v", "--version", help="Print tool version and exit", action="store_true")
+
 
     args = parser.parse_args()
     folder = args.folder
+    want_to_check: bool = args.version_check
+    want_version: bool = args.version
+
+    if folder == None:
+        if want_version:
+            print(f"version {__version__}-{__status__}")
+            exit(0)
+        else:
+            print(f"""{colorama.Fore.CYAN}                                                     
+            (   (                              )     
+ (   (      )\  )\ )   (     )         (    ( /(     
+ )\  )\ (  ((_)(()/(  ))\   (      (   )(   )\())(   
+((_)((_))\  _   ((_))/((_)  )\  '  )\ (()\ (_))/ )\  
+\ \ / /((_)| |  _| |(_))  _((_))  ((_) ((_)| |_ ((_) 
+ \ V // _ \| |/ _` |/ -_)| '  \()/ _ \| '_||  _|(_-< 
+  \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ {colorama.Fore.MAGENTA}[{colorama.Fore.CYAN}v{colorama.Fore.GREEN}{__version__}-{__status__}{colorama.Fore.MAGENTA}] 
+                                                     
+{colorama.Fore.GREEN}A powrfull encryption tool made By {colorama.Fore.BLUE}Muhammed Alkohawaldeh{colorama.Fore.RESET}""")
+
+            print("""usage: voldemorts.py [-h] [-Ss SALT_SIZE] [-e] [-d] [-a] [-s [SKIPPED ...]] [-f] [-Sp START_POINT] [-Vc] [-v] folder
+voldemorts.py: error: the following arguments are required: folder""")
+            exit(1)
+
+    print(f"""{colorama.Fore.CYAN}                                                     
+            (   (                              )     
+ (   (      )\  )\ )   (     )         (    ( /(     
+ )\  )\ (  ((_)(()/(  ))\   (      (   )(   )\())(   
+((_)((_))\  _   ((_))/((_)  )\  '  )\ (()\ (_))/ )\  
+\ \ / /((_)| |  _| |(_))  _((_))  ((_) ((_)| |_ ((_) 
+ \ V // _ \| |/ _` |/ -_)| '  \()/ _ \| '_||  _|(_-< 
+  \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ {colorama.Fore.MAGENTA}[{colorama.Fore.CYAN}v{colorama.Fore.GREEN}{__version__}-{__status__}{colorama.Fore.MAGENTA}] 
+                                                     
+{colorama.Fore.GREEN}A powrfull encryption tool made By {colorama.Fore.BLUE}Muhammed Alkohawaldeh{colorama.Fore.RESET}, User-Mode: [{get_user_mode()}]""")
+
+    if want_to_check:
+        version_checker()   # NOTE: Check for an updates
 
     start_point = args.start_point
 
