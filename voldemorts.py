@@ -1,42 +1,136 @@
 #!/usr/bin/env python3
 
+# Copyright (c) 2023 Muhammed Alkohawaldeh
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
 import cryptography
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
-from Crypto.Random import get_random_bytes
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 
 from rich.progress import track
-from subprocess import check_output
+from subprocess import check_output, run
+from typing import Union
+
+from fake_useragent import UserAgent
+from requests import get
+from bs4 import BeautifulSoup
 
 import os
-import typing
 import platform
 import hashlib
 import secrets
 import base64
 import getpass
 import colorama
-import threading
 import datetime
 import time
 import sys
+# import threading NOTE: for feauture development
+# import multiprocessing NOTE: for feauture development
+# import numpy as np NOTE: for feauture development
 
-print(f"""{colorama.Fore.CYAN}                                                     
-            (   (                              )     
- (   (      )\  )\ )   (     )         (    ( /(     
- )\  )\ (  ((_)(()/(  ))\   (      (   )(   )\())(   
-((_)((_))\  _   ((_))/((_)  )\  '  )\ (()\ (_))/ )\  
-\ \ / /((_)| |  _| |(_))  _((_))  ((_) ((_)| |_ ((_) 
- \ V // _ \| |/ _` |/ -_)| '  \()/ _ \| '_||  _|(_-< 
-  \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ 
-                                                     
-{colorama.Fore.GREEN}A powrfull encryption tool made By {colorama.Fore.BLUE}Muhammed Alkohawaldeh{colorama.Fore.RESET}""")
+__version__: str = "1.0.0"
+__status__: str = "stable" # NOTE: stable, beta, alpha for more information see <https://en.wikipedia.org/wiki/Software_release_life_cycle>
 
-def sprint(text, second=0.03):
-    for line in text + '\n':
+ua = {"User-Agent": UserAgent().random}
+
+def version_checker() -> None:
+    """Search for a new release in github repo.
+    """
+    current_version = __version__.split('.')
+    sprint(f"\n{colorama.Fore.YELLOW}Checke for updates...{colorama.Fore.RESET}\n")
+    respone = get("https://github.com/MASTAR-LAST/Voldemorts/tags", headers=ua)
+    if respone.status_code != 200:
+        sprint(f"{colorama.Fore.RESET}Problem with internet..!\n{colorama.Fore.RESET}")
+        return # NOTE: Arely return to stop the function
+    soup = BeautifulSoup(respone.text, 'html.parser')
+    for link in soup.find_all("a", attrs={"class": "Link--primary Link"}).pop(0):
+        full_version = str(link).split(">")[0]
+        version_number = full_version.removeprefix('v').split('-')[0].split('.')
+        tracker: int = 0
+        for i in range(len(version_number)):
+            if int(version_number[i]) > int(current_version[i]):
+                sprint(f"{colorama.Fore.GREEN}New update was found !\n{colorama.Fore.RESET}")
+                try:
+                    user_respone = input(f"{colorama.Fore.GREEN}Version {colorama.Fore.CYAN}{colorama.Style.BRIGHT}{full_version}{colorama.Style.RESET_ALL}{colorama.Fore.GREEN} is available, {colorama.Fore.YELLOW}Do want to install it{colorama.Fore.RESET} [{colorama.Fore.GREEN}Y{colorama.Fore.RESET}/{colorama.Fore.RED}n{colorama.Fore.RESET}]{colorama.Fore.BLUE}?{colorama.Fore.RESET} ")
+                except KeyboardInterrupt:
+                    sprint(f"{colorama.Fore.YELLOW}Good Bye!{colorama.Fore.RESET}")
+                    exit(0)
+
+                if user_respone.strip().lower() in ['y', 'yes', 'yeah', '1']:
+                    sprint(f"{colorama.Fore.GREEN}Start installtion...{colorama.Fore.RESET}")
+                    tool_updater(soup)
+
+                elif user_respone.strip().lower() in ['n', 'no', 'nuh', '0', 'nop']:
+                    sprint(f"\r\n{colorama.Fore.YELLOW}Checker Finished{colorama.Fore.RESET}")
+                
+                else:
+                    sprint(f"{colorama.Fore.RED}This answer is not valide{colorama.Fore.RESET},{colorama.Fore.YELLOW}Update automatically start...{colorama.Fore.RESET}\n")
+                    tool_updater(soup)
+            else:
+                tracker += 1
+
+            if tracker == 3:
+                sprint(f"{colorama.Fore.GREEN}Your tool is up to date{colorama.Fore.RESET}\n")
+
+def get_user_mode() -> str:
+    """Get the user permissions
+
+    Returns:
+        str: return a string that contane colored text, `Root` if it's a root or run the file with sudo and `Regular User` if none of the prives is true
+    """
+
+    mode: str = getpass.getuser()
+    UID: int = os.geteuid()
+
+    if mode.lower().strip() == 'root' or UID == 0:
+        return f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT}Root{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
+    else:
+        return f"{colorama.Fore.BLUE}{colorama.Style.BRIGHT}Regular User{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
+
+def downloade_link_founder(page: BeautifulSoup) -> str:
+    """generate the downloade link for a `.zip` file of the release.
+
+    Args:
+        page (BeautifulSoup): Github page to scarpe it and get the link.
+
+    Returns:
+        str: return the downloade link
+    """
+    URL_BASE = "https://github.com"
+    url_element = page.find_all("a", attrs={"class": "Link--muted", "rel": "nofollow"}).pop(0)
+    url = URL_BASE + str(url_element).split(">")[0].split()[2].split("=")[-1].split("\"")[1]
+    return url
+
+
+def tool_updater(page: BeautifulSoup) -> None:
+    """Run a bash script to rebuild the tool after the update. 
+
+    Args:
+        page (BeautifulSoup): Github page to scarpe it and get the link.
+    """
+    link = downloade_link_founder(page)
+    dir_name = "Voldemorts-" + link.split("/")[-1].removeprefix("v").removesuffix(".zip")
+
+    update_status = run(f"./tracker_voldemort3600k.sh {link} {dir_name}", shell=True).returncode
+    if update_status == 1:
+        sprint(f"{colorama.Fore.RED}Unable to update the tool{colorama.Fore.RESET}, {colorama.Fore.YELLOW}Please roport at https://github.com/MASTAR-LAST/Voldemorts/issues{colorama.Fore.RESET}")
+
+
+def sprint(text: str, second: int = 0.03, end: str = '\n') -> None:
+    """Print the text slowly.
+
+    Args:
+        text (str): the staring that want to print it to the termenal.
+        second (float, optional): the time between each char. Defaults to 0.03.
+        end (str, optional): char to write in the end or line. Defaults to '\n'.
+    """
+    for line in text + end:
         sys.stdout.write(line)
         sys.stdout.flush()
         time.sleep(second)
