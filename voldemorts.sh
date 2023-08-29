@@ -22,10 +22,15 @@ echo "Install packeges..."
 
 echo ""
 
+sudo pip3 install beautifulsoup4
+sudo pip3 install fake-useragent
 sudo pip3 install cryptography
-sudo pip3 install colorama
 sudo pip3 install pycryptodome
+sudo pip3 install colorama
+sudo pip3 install requests
 sudo pip3 install rich
+
+sudo apt-get install unzip
 
 echo ""
 echo ""
