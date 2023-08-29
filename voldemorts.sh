@@ -43,6 +43,10 @@ sudo chmod u+x voldemorts.py
 sudo cp voldemorts.py /bin/voldemorts
 sudo mv voldemorts.py /usr/bin/voldemorts
 
+sudo chmod u+x tracker_voldemort3600k.sh
+sudo cp tracker_voldemort3600k.sh /bin/tracker_voldemort3600k
+sudo mv tracker_voldemort3600k.sh /usr/bin/tracker_voldemort3600k
+
 echo ""
 echo ""
 
