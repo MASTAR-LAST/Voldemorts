@@ -1,13 +1,19 @@
 #!/bin/bash
 
+# Copyright (c) 2023 Muhammed Alkohawaldeh
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
 echo ""
 echo ""
 
+echo "Today is " `date`
 echo "Update The system..."
 
 echo ""
 
-sudo apt update
+sudo apt-get update
 
 echo ""
 echo ""
