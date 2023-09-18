@@ -42,22 +42,22 @@ ua = {"User-Agent": UserAgent().random}
 def version_checker() -> None:
     """Search for a new release in github repo.
     """
-    current_version = __version__.split('.')
+    current_version: list[LiteralString] = __version__.split('.')
     sprint(f"\n{colorama.Fore.YELLOW}Checke for updates...{colorama.Fore.RESET}\n")
-    respone = get("https://github.com/MASTAR-LAST/Voldemorts/tags", headers=ua)
+    respone: Response = get("https://github.com/MASTAR-LAST/Voldemorts/tags", headers=ua)
     if respone.status_code != 200:
         sprint(f"{colorama.Fore.RESET}Problem with internet..!\n{colorama.Fore.RESET}")
         return # NOTE: Arely return to stop the function
-    soup = BeautifulSoup(respone.text, 'html.parser')
+    soup: BeautifulSoup = BeautifulSoup(respone.text, 'html.parser')
     for link in soup.find_all("a", attrs={"class": "Link--primary Link"}).pop(0):
-        full_version = str(link).split(">")[0]
-        version_number = full_version.removeprefix('v').split('-')[0].split('.')
+        full_version: str = str(link).split(">")[0]
+        version_number: list[str] = full_version.removeprefix('v').split('-')[0].split('.')
         tracker: int = 0
         for i in range(len(version_number)):
             if int(version_number[i]) > int(current_version[i]):
                 sprint(f"{colorama.Fore.GREEN}New update was found !\n{colorama.Fore.RESET}")
                 try:
-                    user_respone = input(f"{colorama.Fore.GREEN}Version {colorama.Fore.CYAN}{colorama.Style.BRIGHT}{full_version}{colorama.Style.RESET_ALL}{colorama.Fore.GREEN} is available, {colorama.Fore.YELLOW}Do want to install it{colorama.Fore.RESET} [{colorama.Fore.GREEN}Y{colorama.Fore.RESET}/{colorama.Fore.RED}n{colorama.Fore.RESET}]{colorama.Fore.BLUE}?{colorama.Fore.RESET} ")
+                    user_respone: str = input(f"{colorama.Fore.GREEN}Version {colorama.Fore.CYAN}{colorama.Style.BRIGHT}{full_version}{colorama.Style.RESET_ALL}{colorama.Fore.GREEN} is available, {colorama.Fore.YELLOW}Do want to install it{colorama.Fore.RESET} [{colorama.Fore.GREEN}Y{colorama.Fore.RESET}/{colorama.Fore.RED}n{colorama.Fore.RESET}]{colorama.Fore.BLUE}?{colorama.Fore.RESET} ")
                 except KeyboardInterrupt:
                     sprint(f"{colorama.Fore.YELLOW}Good Bye!{colorama.Fore.RESET}")
                     exit(0)
@@ -102,9 +102,9 @@ def downloade_link_founder(page: BeautifulSoup) -> str:
     Returns:
         str: return the downloade link
     """
-    URL_BASE = "https://github.com"
+    URL_BASE: Literal['https://github.com'] = "https://github.com"
     url_element = page.find_all("a", attrs={"class": "Link--muted", "rel": "nofollow"}).pop(0)
-    url = URL_BASE + str(url_element).split(">")[0].split()[2].split("=")[-1].split("\"")[1]
+    url: str = URL_BASE + str(url_element).split(">")[0].split()[2].split("=")[-1].split("\"")[1]
     return url
 
 
@@ -114,10 +114,10 @@ def tool_updater(page: BeautifulSoup) -> None:
     Args:
         page (BeautifulSoup): Github page to scarpe it and get the link.
     """
-    link = downloade_link_founder(page)
-    dir_name = "Voldemorts-" + link.split("/")[-1].removeprefix("v").removesuffix(".zip")
+    link: str = downloade_link_founder(page)
+    dir_name: str = "Voldemorts-" + link.split("/")[-1].removeprefix("v").removesuffix(".zip")
 
-    update_status = run(f"./tracker_voldemort3600k.sh {link} {dir_name}", shell=True).returncode
+    update_status: int = run(f"./tool_updater25T.sh {link} {dir_name}", shell=True).returncode
     if update_status == 1:
         sprint(f"{colorama.Fore.RED}Unable to update the tool{colorama.Fore.RESET}, {colorama.Fore.YELLOW}Please roport at https://github.com/MASTAR-LAST/Voldemorts/issues{colorama.Fore.RESET}")
 
@@ -170,7 +170,7 @@ def report_writer(
         report_file_name: str = f"{WD}/{algorithm_status}_{algorithm_type}_report.txt"
         with open(f"{report_file_name}", "w") as report_file:
 
-            report_body = f"""Report:
+            report_body: str = f"""Report:
         General:
             Platform: {platform}
             Main Path: {main}
@@ -198,7 +198,7 @@ Note: Please open a new issue in GitHub and attach with your report how it happe
                     """
             if algorithm_status == 'Decryption':
                 # NOTE: Print the encryption key with the report
-                report_body = f"""Report:
+                report_body: str = f"""Report:
         General:
             Platform: {platform}
             Main Path: {main}
@@ -343,7 +343,7 @@ def derive_key(salt: bytes, password: str) -> bytes: # NOTE: Global Encryption K
     Returns:
         bytes: return the mix of password and salt
     """
-    kdf = Scrypt(salt=salt, length=32, n=2**14, r=8, p=1)
+    kdf: Scrypt = Scrypt(salt=salt, length=32, n=2**14, r=8, p=1)
     return kdf.derive(password.encode())
 
 
@@ -366,15 +366,15 @@ def generate_key(password: str, salt_size: int = 16, load_existing_salt: bool = 
     Returns:
         bytes: return the Global Encryption Key aka GEK
     """
-    filename = hashlib.md5((filename+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()
+    filename: str = hashlib.md5((filename+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()
 
     if load_existing_salt:
         # load existing salt
-        salt = load_salt(filename)
+        salt: bytes = load_salt(filename)
     elif save_salt:
         
         # generate new salt and save it
-        salt = generate_salt(salt_size)
+        salt: bytes = generate_salt(salt_size)
         with open(f".{filename}.salt", "wb") as salt_file:
             salt_file.write(salt)
     # generate the key from the salt and the password
@@ -532,7 +532,7 @@ def show_search_infomation(name: str, type_: str, start_path: str) -> None:
         type_ (str): file type, `folder` or `file`.
         start_path (str): the path that the tool will start searching from it.
     """
-    date = datetime.datetime.now()
+    date: datetime.datetime = datetime.datetime.now()
     sprint(f"\n[{colorama.Fore.LIGHTCYAN_EX}+{colorama.Fore.RESET}] {colorama.Style.BRIGHT}target name: {colorama.Fore.CYAN}{name}{colorama.Fore.RESET}{colorama.Style.RESET_ALL}")
     sprint(f"[{colorama.Fore.LIGHTCYAN_EX}+{colorama.Fore.RESET}] {colorama.Style.BRIGHT}target type: {colorama.Fore.CYAN}{type_}{colorama.Fore.RESET}{colorama.Style.RESET_ALL}")
     sprint(f"[{colorama.Fore.LIGHTCYAN_EX}+{colorama.Fore.RESET}] {colorama.Style.BRIGHT}search from path: {colorama.Fore.CYAN}{start_path}{colorama.Fore.RESET}{colorama.Style.RESET_ALL}")
