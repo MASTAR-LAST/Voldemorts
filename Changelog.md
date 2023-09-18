@@ -25,7 +25,7 @@
 
 
 ## Release v1.1.0 ☄️
-> **Release date _No Date_**
+> **Release date _Sep 19, 2023_**
 ### New Features 🌟
 
 1. **Fast elements searching** 👀
