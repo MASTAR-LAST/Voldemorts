@@ -542,26 +542,25 @@ def not_around(gpath: str, home_path: str) -> list[str]:
     dirs_for_filter: list[str] = []
     files_for_filter: list[str] = []
     try:
-        for root, Gdir, Gfiles in track(os.walk(home_path), "Searching...", show_speed=False, update_period=0.01):
+        for root, Gdir, Gfiles in track(os.walk(home_path), "Searching...", show_speed=True, update_period=0.01):
                 for i in range(len(Gdir)):
                     if Gdir[i] in [gpath.split('/')[-1]]:
 
                         gpath: str = root[0:] + '/' + Gdir[i]
-                        prossesed_copy_path: str = gpath
-                        dirs_for_filter.append(prossesed_copy_path)
+                        dirs_for_filter.append(gpath)
 
                 for i in range(len(Gfiles)):
                     if Gfiles[i] in [gpath.split('/')[-1]]:
 
                         gpath: str = root[0:] + '/' + Gfiles[i]
-                        prossesed_copy_path: str = gpath
-                        files_for_filter.append(prossesed_copy_path)
+                        files_for_filter.append(gpath)
         print()
 
         return dirs_for_filter, files_for_filter
     except KeyboardInterrupt:
         sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
         exit(1)
+
 
 def ask_for_file_path(repeted_dirs: list[str], input_copy_path: str) -> int:
             """Print the possible file/folder paths if there is more than one of them.
