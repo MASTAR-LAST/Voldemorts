@@ -785,18 +785,25 @@ def reveres_encryption(file_path: str, key: bytes, reverse_algorithm: Union[None
 
 if __name__ == "__main__":
     import argparse
-    parser = argparse.ArgumentParser(description="""File Encrypting Script with a Password""")
+    parser = argparse.ArgumentParser(description="""File Encrypting Tool with a Password""")
+
+    encryption_options = parser.add_argument_group(title="Encryption Options")
+    search_options = parser.add_argument_group(title="Search Options")
+    version_options = parser.add_argument_group(title="Version")
 
     parser.add_argument("folder", help="Folder to encrypt/decrypt", nargs='?')
-    parser.add_argument("-Ss", "--salt-size", help="If this is set, a new salt with the passed size is generated, take 16 as default", type=int)
-    parser.add_argument("-e", "--encrypt", action="store_true", help="Whether to encrypt the file, only -e or -d can be specified.")
-    parser.add_argument("-d", "--decrypt", action="store_true", help="Whether to decrypt the file, only -e or -d can be specified.")
-    parser.add_argument("-a", "--is-around", action="store_true", help="If is around, the tool will encrypt/decrypt all the files that is with it in the same folder")
-    parser.add_argument("-s", "--skipped", help="If there is any file you want to ignored it", nargs='*', type=list[str])
-    parser.add_argument("-f", "--is-file", action="store_true", help="If the path is for a file")
-    parser.add_argument("-Sp", "--start-point", help="Determine the starting path of the search, take a path '/home' as default", type=str)
-    parser.add_argument("-Vc", "--version-check", help="Check the tool version before the execution", action="store_true")
-    parser.add_argument("-v", "--version", help="Print tool version and exit", action="store_true")
+
+    encryption_options.add_argument("-Ss", "--salt-size", help="If this is set a new salt with the passed size is generated, take 16 as default", type=int)
+    encryption_options.add_argument("-e", "--encrypt", action="store_true", help="Whether to encrypt the file, only -e or -d can be specified.")
+    encryption_options.add_argument("-d", "--decrypt", action="store_true", help="Whether to decrypt the file, only -e or -d can be specified.")
+
+    search_options.add_argument("-a", "--is-around", action="store_true", help="If is around the tool will encrypt/decrypt all the files that is with it in the same folder")
+    search_options.add_argument("-s", "--skipped", help="If there is any file you want to ignored it", nargs='*', type=list[str])
+    search_options.add_argument("-f", "--is-file", action="store_true", help="If the path is for a file")
+    search_options.add_argument("-Sp", "--start-point", help="Determine the starting path of the search, take a path '/home' as default", type=str)
+
+    version_options.add_argument("-Vc", "--version-check", help="Check the tool version before the execution", action="store_true")
+    version_options.add_argument("-v", "--version", help="Print tool version and exit", action="store_true")
 
 
     args = parser.parse_args()
