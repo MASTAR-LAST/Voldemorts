@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+# NOTE: https://docs.python.org/3/library/argparse.html#argument-groups
 # Copyright (c) 2023 Muhammed Alkohawaldeh
 # 
 # This software is released under the MIT License.
@@ -11,13 +12,14 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
+from random import sample
 
 from rich.progress import track
 from subprocess import check_output, run
-from typing import Union
+from typing import Union, LiteralString, Literal, List
 
 from fake_useragent import UserAgent
-from requests import get
+from requests import get, Response
 from bs4 import BeautifulSoup
 
 import os
