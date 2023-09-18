@@ -32,11 +32,9 @@ import colorama
 import datetime
 import time
 import sys
-# import threading NOTE: for feauture development
-# import multiprocessing NOTE: for feauture development
-# import numpy as np NOTE: for feauture development
 
-__version__: str = "1.0.0"
+
+__version__: str = "1.1.0"
 __status__: str = "stable" # NOTE: stable, beta, alpha for more information see <https://en.wikipedia.org/wiki/Software_release_life_cycle>
 
 ua = {"User-Agent": UserAgent().random}
