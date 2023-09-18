@@ -233,7 +233,7 @@ Note: Please open a new issue in GitHub and attach with your report how it happe
         
     except Exception as error:
         sprint(f"{colorama.Fore.RED}Unable to write the report, please try again in with sudo command.{colorama.Fore.RESET}")
-        sprint(f"{colorama.Fore.YELLOW}If nothing works please report at the link in messages,{colorama.Fore.RESET}")
+        sprint(f"{colorama.Fore.YELLOW}If nothing works please report at the link in messages.{colorama.Fore.RESET}")
 
         return (False, "Error")
         
@@ -830,12 +830,11 @@ if __name__ == "__main__":
 ((_)((_))\  _   ((_))/((_)  )\  '  )\ (()\ (_))/ )\  
 \ \ / /((_)| |  _| |(_))  _((_))  ((_) ((_)| |_ ((_) 
  \ V // _ \| |/ _` |/ -_)| '  \()/ _ \| '_||  _|(_-< 
-  \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ {colorama.Fore.MAGENTA}[{colorama.Fore.CYAN}v{colorama.Fore.GREEN}{__version__}-{__status__}{colorama.Fore.MAGENTA}] 
+  \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ {colorama.Fore.MAGENTA}[{colorama.Fore.CYAN}v{colorama.Fore.GREEN}{__version__}{colorama.Fore.MAGENTA}] 
                                                      
 {colorama.Fore.GREEN}A powrfull encryption tool made By {colorama.Fore.BLUE}Muhammed Alkohawaldeh{colorama.Fore.RESET}""")
 
-            print("""usage: voldemorts.py [-h] [-Ss SALT_SIZE] [-e] [-d] [-a] [-s [SKIPPED ...]] [-f] [-Sp START_POINT] [-Vc] [-v] folder
-voldemorts.py: error: the following arguments are required: folder""")
+            parser.print_help()
             exit(1)
 
     print(f"""{colorama.Fore.CYAN}                                                     
@@ -845,7 +844,7 @@ voldemorts.py: error: the following arguments are required: folder""")
 ((_)((_))\  _   ((_))/((_)  )\  '  )\ (()\ (_))/ )\  
 \ \ / /((_)| |  _| |(_))  _((_))  ((_) ((_)| |_ ((_) 
  \ V // _ \| |/ _` |/ -_)| '  \()/ _ \| '_||  _|(_-< 
-  \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ {colorama.Fore.MAGENTA}[{colorama.Fore.CYAN}v{colorama.Fore.GREEN}{__version__}-{__status__}{colorama.Fore.MAGENTA}] 
+  \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ {colorama.Fore.MAGENTA}[{colorama.Fore.CYAN}v{colorama.Fore.GREEN}{__version__}{colorama.Fore.MAGENTA}] 
                                                      
 {colorama.Fore.GREEN}A powrfull encryption tool made By {colorama.Fore.BLUE}Muhammed Alkohawaldeh{colorama.Fore.RESET}, User-Mode: [{get_user_mode()}]""")
 
