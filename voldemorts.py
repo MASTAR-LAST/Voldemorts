@@ -888,11 +888,12 @@ if __name__ == "__main__":
 
     if args.salt_size:
 
-        if args.decrypt:
+        if decrypt_:
 
             result = input(f"{colorama.Fore.YELLOW}If you set a new salt during the decryption process, this will cause the loss of the old salt that this file was encrypted with, and you will not be able to decrypt it. {colorama.Fore.MAGENTA}Do you want to continue like this{colorama.Fore.MAGENTA}[{colorama.Fore.GREEN}y{colorama.Fore.YELLOW}/{colorama.Fore.RED}N{colorama.Fore.MAGENTA}]{colorama.Fore.WHITE}? {colorama.Fore.RESET}")
 
-            if result.strip().lower() in ['y', 'yes', 'yeah']:
+            if result.strip().lower() in ['y', 'yes', 'yeah', '1']:
+                del result
                 key: bytes = generate_key(password, salt_size=args.salt_size, save_salt=True, filename=folder)
 
             else:
@@ -903,10 +904,10 @@ if __name__ == "__main__":
 
     else:
         try:
-            if args.encrypt:
+            if encrypt_:
                 try:
                     result_ = input(f"{colorama.Fore.YELLOW}You did not set a salt size, so it well be {colorama.Fore.MAGENTA}16{colorama.Fore.YELLOW} as a default value, {colorama.Fore.CYAN}Did you want to continue {colorama.Fore.MAGENTA}[{colorama.Fore.GREEN}y{colorama.Fore.YELLOW}/{colorama.Fore.RED}N{colorama.Fore.MAGENTA}]{colorama.Fore.WHITE}? {colorama.Fore.RESET}")
-                    if result_.strip().lower() in ['y', 'yes', 'yeah']:
+                    if result_.strip().lower() in ['y', 'yes', 'yeah', '1']:
                         key: bytes = generate_key(password, salt_size=16, save_salt=True)
                     else:
                         sprint(f"{colorama.Fore.BLUE}Rerun this program again if you want to encrypt anything without this mistake !{colorama.Fore.RESET}")
