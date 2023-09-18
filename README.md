@@ -53,7 +53,7 @@
 #### Install the tool with Git ![Git](https://github.com/MASTAR-LAST/Science/assets/79379000/1594eb5f-fc68-4255-9c3d-5f6340a045f2)
 
 ```bash
-git clone https://github.com/MASTAR-LAST/Voldemorts.git && cd Voldemorts && sudo chmod u+x voldemorts.sh && ./voldemorts.sh
+git clone https://github.com/MASTAR-LAST/Voldemorts.git && cd Voldemorts && sudo chmod u+x installer.sh && ./installer.sh
 ```
 
 
@@ -64,15 +64,6 @@ sudo voldemorts [folder name] --encrypt --salt-size 128
 ```
 ### Help
 ```bash
-            (   (                              )     
- (   (      )\  )\ )   (     )         (    ( /(     
- )\  )\ (  ((_)(()/(  ))\   (      (   )(   )\())(   
-((_)((_))\  _   ((_))/((_)  )\  '  )\ (()\ (_))/ )\  
-\ \ / /((_)| |  _| |(_))  _((_))  ((_) ((_)| |_ ((_) 
- \ V // _ \| |/ _` |/ -_)| '  \()/ _ \| '_||  _|(_-< 
-  \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ 
-                                                     
-A powerful encryption tool made By Muhammad Alkohawaldeh
 usage: voldemorts.py [-h] [-Ss SALT_SIZE] [-e] [-d] [-a] [-s [SKIPPED ...]] [-f] [-Sp START_POINT] [-Vc] [-v] [folder]
 
 File Encrypting Script with a Password
@@ -82,16 +73,22 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
+
+Encryption Options:
   -Ss SALT_SIZE, --salt-size SALT_SIZE
                         If this is set, a new salt with the passed size is generated, take 16 as default
   -e, --encrypt         Whether to encrypt the file, only -e or -d can be specified.
   -d, --decrypt         Whether to decrypt the file, only -e or -d can be specified.
+
+Search Options:
   -a, --is-around       If is around, the tool will encrypt/decrypt all the files that is with it in the same folder
   -s [SKIPPED ...], --skipped [SKIPPED ...]
                         If there is any file you want to ignored it
   -f, --is-file         If the path is for a file
   -Sp START_POINT, --start-point START_POINT
                         Determine the starting path of the search, take a path '/home' as default
+
+Version:
   -Vc, --version-check  Check the tool version before the execution
   -v, --version         Print tool version and exit
 ```
@@ -99,31 +96,37 @@ options:
 1. **Hybrid encryption with *AES&Fernet*** - [*Done*] ✅
 2. **Auto reversing for encryption layers if one is failed** - [*Done*] ✅
 3. **Version tracker** - [*Done*] ✅ 
-4. **Auto decrypting side script** 🔄
-5. **Fast file searching** 🔄
+4. **Fast file searching** - [*Done*] ✅
+5. **Auto decrypting side script** 🔄
 6. **Windows supporting** 🔄
 7. **Password auto-generation flag with length and character set** 🔄
 8. **Caesar encryption layer** 🔄
 9. **RSA encryption flag** 🔄
 10. **Get hash flag** 🔄
+11. **More search options** 🔄
+12. **Stop at the first file you find flag** 🔄
+13. **Double checking password** - [*Done*] ✅
+14. **Expiry date for the file** 🔄
+15. **Electronic signature** 🔄
+16. **Split the file to parts depending on the memory size** 🔄
+17. **Make a encrypted copy of the file/folder** 🔄
+18. **Fast Encryption/Decryption files** 🔄
 
-# Changelog 🕑
+# Last Release Info 🕑
 
-## What's new in v1.0.0? ☄️
+## What's new in v1.1.0? ☄️
 ### New Features 🌟
 
-1. **Stable release.**  🛡
-2. **Good error handling** 💫
-3. **Useful error messages** 💪
-4. **Writing a report when an error occurred** 📃
-5. **Auto reversing for encryption layers if one is failed** 🧠
-6. **Version checker** 👀
-7. **Auto updates for the tool** 🤖
-8. **Version flag** 🚩
-9. **User permissions checker** 👾
+1. **Fast elements searching** 👀
+2. **Roadmap Update** 🆙
+3. **More meaningful file names** 💬
+4. **Changelog file** 🕑
+5. **Organized help message** 🗃
+6. **More error handling** 🪛
+7. **Double-Check password** 🔑
 
 ### Fixed Bugs 🪲
-**issue numbers:** [#4](https://github.com/MASTAR-LAST/Voldemorts/issues/4) 📍
+**issue numbers:** [#7](https://github.com/MASTAR-LAST/Voldemorts/issues/7) , [#6](https://github.com/MASTAR-LAST/Voldemorts/issues/6) , [#8](https://github.com/MASTAR-LAST/Voldemorts/issues/8) , [#9](https://github.com/MASTAR-LAST/Voldemorts/issues/9) 📍
 
 # License 📑
 
@@ -156,9 +159,9 @@ SOFTWARE.
 
 
 ## Support 📨
-**Support Email:** twisters50team@gmail.com 
+**Support Email:** twisters50team@gmail.com 📧
 
 ## Note  📌
-**Use this tool in a super user mood.**
+**Use this tool in a super user mood.** 🥷🏼
 
-###  📛WARNING📛: ⚠️DO NOT ENCRYPT THE SAME FILE TWO TIMES OR YOU WILL BE UNABLE TO DECRYPT IT AGAIN⚠️
+>  📛WARNING📛: ⚠️DO NOT ENCRYPT THE SAME FILE TWO TIMES OR YOU WILL BE UNABLE TO DECRYPT IT AGAIN⚠️
