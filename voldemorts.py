@@ -43,12 +43,12 @@ def version_checker() -> None:
     """Search for a new release in github repo.
     """
     current_version: list[LiteralString] = __version__.split('.')
-    sprint(f"\n{colorama.Fore.YELLOW}Checke for updates...{colorama.Fore.RESET}\n")
-    respone: Response = get("https://github.com/MASTAR-LAST/Voldemorts/tags", headers=ua)
-    if respone.status_code != 200:
+    sprint(f"\n{colorama.Fore.YELLOW}Check for updates...{colorama.Fore.RESET}\n")
+    response: Response = get("https://github.com/MASTAR-LAST/Voldemorts/tags", headers=ua)
+    if response.status_code != 200:
         sprint(f"{colorama.Fore.RESET}Problem with internet..!\n{colorama.Fore.RESET}")
-        return # NOTE: Arely return to stop the function
-    soup: BeautifulSoup = BeautifulSoup(respone.text, 'html.parser')
+        return # NOTE: Arley return to stop the function
+    soup: BeautifulSoup = BeautifulSoup(response.text, 'html.parser')
     for link in soup.find_all("a", attrs={"class": "Link--primary Link"}).pop(0):
         full_version: str = str(link).split(">")[0]
         version_number: list[str] = full_version.removeprefix('v').split('-')[0].split('.')
@@ -57,20 +57,20 @@ def version_checker() -> None:
             if int(version_number[i]) > int(current_version[i]):
                 sprint(f"{colorama.Fore.GREEN}New update was found !\n{colorama.Fore.RESET}")
                 try:
-                    user_respone: str = input(f"{colorama.Fore.GREEN}Version {colorama.Fore.CYAN}{colorama.Style.BRIGHT}{full_version}{colorama.Style.RESET_ALL}{colorama.Fore.GREEN} is available, {colorama.Fore.YELLOW}Do want to install it{colorama.Fore.RESET} [{colorama.Fore.GREEN}Y{colorama.Fore.RESET}/{colorama.Fore.RED}n{colorama.Fore.RESET}]{colorama.Fore.BLUE}?{colorama.Fore.RESET} ")
+                    user_response: str = input(f"{colorama.Fore.GREEN}Version {colorama.Fore.CYAN}{colorama.Style.BRIGHT}{full_version}{colorama.Style.RESET_ALL}{colorama.Fore.GREEN} is available, {colorama.Fore.YELLOW}Do want to install it{colorama.Fore.RESET} [{colorama.Fore.GREEN}Y{colorama.Fore.RESET}/{colorama.Fore.RED}n{colorama.Fore.RESET}]{colorama.Fore.BLUE}?{colorama.Fore.RESET} ")
                 except KeyboardInterrupt:
                     sprint(f"{colorama.Fore.YELLOW}Good Bye!{colorama.Fore.RESET}")
                     exit(0)
 
-                if user_respone.strip().lower() in ['y', 'yes', 'yeah', '1']:
-                    sprint(f"{colorama.Fore.GREEN}Start installtion...{colorama.Fore.RESET}")
+                if user_response.strip().lower() in ['y', 'yes', 'yeah', '1']:
+                    sprint(f"{colorama.Fore.GREEN}Start installation...{colorama.Fore.RESET}")
                     tool_updater(soup)
 
-                elif user_respone.strip().lower() in ['n', 'no', 'nuh', '0', 'nop']:
+                elif user_response.strip().lower() in ['n', 'no', 'nuh', '0', 'nop']:
                     sprint(f"\r\n{colorama.Fore.YELLOW}Checker Finished{colorama.Fore.RESET}")
                 
                 else:
-                    sprint(f"{colorama.Fore.RED}This answer is not valide{colorama.Fore.RESET},{colorama.Fore.YELLOW}Update automatically start...{colorama.Fore.RESET}\n")
+                    sprint(f"{colorama.Fore.RED}This answer is not valid{colorama.Fore.RESET},{colorama.Fore.YELLOW}Update automatically start...{colorama.Fore.RESET}\n")
                     tool_updater(soup)
             else:
                 tracker += 1
@@ -82,7 +82,7 @@ def get_user_mode() -> str:
     """Get the user permissions
 
     Returns:
-        str: return a string that contane colored text, `Root` if it's a root or run the file with sudo and `Regular User` if none of the prives is true
+        str: return a string that contin colored text, `Root` if it's a root or run the file with sudo and `Regular User` if none of the preves is true
     """
 
     mode: str = getpass.getuser()
@@ -93,14 +93,14 @@ def get_user_mode() -> str:
     else:
         return f"{colorama.Fore.BLUE}{colorama.Style.BRIGHT}Regular User{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
 
-def downloade_link_founder(page: BeautifulSoup) -> str:
-    """generate the downloade link for a `.zip` file of the release.
+def download_link_founder(page: BeautifulSoup) -> str:
+    """generate the download link for a `.zip` file of the release.
 
     Args:
-        page (BeautifulSoup): Github page to scarpe it and get the link.
+        page (BeautifulSoup): Github page to scarp it and get the link.
 
     Returns:
-        str: return the downloade link
+        str: return the download link
     """
     URL_BASE: Literal['https://github.com'] = "https://github.com"
     url_element = page.find_all("a", attrs={"class": "Link--muted", "rel": "nofollow"}).pop(0)
@@ -112,21 +112,21 @@ def tool_updater(page: BeautifulSoup) -> None:
     """Run a bash script to rebuild the tool after the update. 
 
     Args:
-        page (BeautifulSoup): Github page to scarpe it and get the link.
+        page (BeautifulSoup): Github page to scarp it and get the link.
     """
-    link: str = downloade_link_founder(page)
+    link: str = download_link_founder(page)
     dir_name: str = "Voldemorts-" + link.split("/")[-1].removeprefix("v").removesuffix(".zip")
 
     update_status: int = run(f"./tool_updater25T.sh {link} {dir_name}", shell=True).returncode
     if update_status == 1:
-        sprint(f"{colorama.Fore.RED}Unable to update the tool{colorama.Fore.RESET}, {colorama.Fore.YELLOW}Please roport at https://github.com/MASTAR-LAST/Voldemorts/issues{colorama.Fore.RESET}")
+        sprint(f"{colorama.Fore.RED}Unable to update the tool{colorama.Fore.RESET}, {colorama.Fore.YELLOW}Please report at https://github.com/MASTAR-LAST/Voldemorts/issues{colorama.Fore.RESET}")
 
 
 def sprint(text: str, second: int = 0.03, end: str = '\n') -> None:
     """Print the text slowly.
 
     Args:
-        text (str): the staring that want to print it to the termenal.
+        text (str): the staring that want to print it to the terminal.
         second (float, optional): the time between each char. Defaults to 0.03.
         end (str, optional): char to write in the end or line. Defaults to '\n'.
     """
@@ -159,9 +159,9 @@ def report_writer(
         platform (str, optional): Operating System name. Defaults to OS_NAME.
         main (str, optional): your current working directory. Defaults to WD.
         algorithm_type (Union[str, None], optional): what is the algorithm that raise this error. Defaults to None.
-        algorithm_status (Union[str, None], optional): when the error happend while `Encryption` or `Decryption`. Defaults to None.
+        algorithm_status (Union[str, None], optional): when the error happened while `Encryption` or `Decryption`. Defaults to None.
         error_message (Union[str, None], optional): the full error message for the error. Defaults to None.
-        key (Union[str, None], optional): the Globale Encryption Key for the file, print just if the `algorithm_status` is `Decryption` only. Defaults to None.
+        key (Union[str, None], optional): the Global Encryption Key for the file, print just if the `algorithm_status` is `Decryption` only. Defaults to None.
 
     Returns:
         tuple[bool, str]: return the `True` if the report was written successfully with the `report path` else  return `False` and `Error` string.
@@ -321,10 +321,10 @@ def generate_salt(size: int = 16) -> bytes:
     """Generate the salt used for key derivation,`size` is the length of the salt to generate
 
     Args:
-        size (int, optional): salte size. Defaults to 16.
+        size (int, optional): salt size. Defaults to 16.
 
     Returns:
-        bytes: return the salte as a bytes
+        bytes: return the salt as a bytes
     """
     return secrets.token_bytes(size)
 
@@ -471,7 +471,7 @@ def decrypt(filename: tuple[list, list[str]], key: bytes) -> Union[Union[int, bo
             exit(1)
 
 def replace_encoding_text(filename: tuple[list, list[str]], status: str) -> Union[None, str]:
-        """replaceing the chars with other chars as an another encryption layer. 
+        """replacing the chars with other chars as an another encryption layer. 
 
         Args:
             filename (tuple[list, list[str]]): the files path list.
@@ -509,14 +509,14 @@ def replace_encoding_text(filename: tuple[list, list[str]], status: str) -> Unio
                 return "reverse"
 
 
-def show_note_massege_and_exit() -> None:
-    """print a warnang messages and exit.
+def show_note_message_and_exit() -> None:
+    """print a warning messages and exit.
     """
     print(f"{colorama.Fore.LIGHTWHITE_EX}This process could take some time{colorama.Fore.RESET}")
     print(f"{colorama.Fore.LIGHTYELLOW_EX}PLEASE DON'T DELETE, CREATE OR UPDATE ANY FOLDE OR FILE WHILE THIS PROGRAM IS RUN.{colorama.Fore.RESET}\n")
 
-def show_search_infomation(name: str, type_: str, start_path: str) -> None:
-    """print general information about the encryption prossece.
+def show_search_information(name: str, type_: str, start_path: str) -> None:
+    """print general information about the encryption precess.
 
     Args:
         name (str): file name.
@@ -530,14 +530,14 @@ def show_search_infomation(name: str, type_: str, start_path: str) -> None:
     sprint(f"[{colorama.Fore.LIGHTCYAN_EX}+{colorama.Fore.RESET}] {colorama.Style.BRIGHT}current date: {colorama.Fore.CYAN}{date:%y.%m.%d %H:%M:%S}{colorama.Fore.RESET}{colorama.Style.RESET_ALL}\n")
 
 def not_around(gpath: str, home_path: str) -> list[str]:
-    """Walk throwe the folders the finale file.
+    """Walk throw the folders the finale file.
 
     Args:
-        gpath (str): the name of the `file/folde` that the tool searching for.
+        gpath (str): the name of the `file/folder` that the tool searching for.
         home_path (str): the path that the tool will start searching from it.
 
     Returns:
-        list[str]: return a list contane the file/folder paths.
+        list[str]: return a list contin the file/folder paths.
     """
     dirs_for_filter: list[str] = []
     files_for_filter: list[str] = []
@@ -562,19 +562,19 @@ def not_around(gpath: str, home_path: str) -> list[str]:
         exit(1)
 
 
-def ask_for_file_path(repeted_dirs: list[str], input_copy_path: str) -> int:
+def ask_for_file_path(repeated_dirs: list[str], input_copy_path: str) -> int:
             """Print the possible file/folder paths if there is more than one of them.
 
             Args:
-                repeted_dirs (list[str]): the list of the possible paths.
+                repeated_dirs (list[str]): the list of the possible paths.
                 input_copy_path (str): the file/folder name.
 
             Returns:
                 int: return the index of the element in the path array, or return the length of arrary which means that you want to encrypt/decrypt all of them.
             """
-            print(f"""{colorama.Fore.GREEN}There a {colorama.Fore.MAGENTA}{len(repeted_dirs)} {colorama.Fore.GREEN}file that have the same name of {colorama.Fore.CYAN}{input_copy_path}{colorama.Fore.GREEN}.{colorama.Fore.RESET}""")
+            print(f"""{colorama.Fore.GREEN}There a {colorama.Fore.MAGENTA}{len(repeated_dirs)} {colorama.Fore.GREEN}file that have the same name of {colorama.Fore.CYAN}{input_copy_path}{colorama.Fore.GREEN}.{colorama.Fore.RESET}""")
             i: int = 1
-            for dir in repeted_dirs:
+            for dir in repeated_dirs:
                 if i == 1:
                     print(f"\n    {colorama.Fore.GREEN}{i}. The {colorama.Fore.CYAN}{input_copy_path} {colorama.Fore.GREEN}in [  {colorama.Fore.LIGHTCYAN_EX}{dir} {colorama.Fore.GREEN} ] folder{colorama.Fore.RESET}")
                     i += 1
@@ -586,7 +586,7 @@ def ask_for_file_path(repeted_dirs: list[str], input_copy_path: str) -> int:
                 response: int = int(input(f'{colorama.Fore.YELLOW}Choose one of the available options by passing it\'s number: {colorama.Fore.RESET}').strip())
                 response -= 1
             except ValueError or UnboundLocalError:
-                sprint(f"\n\n{colorama.Fore.RED}This is not in the valed.{colorama.Fore.RESET}\n")
+                sprint(f"\n\n{colorama.Fore.RED}This is not in the valid.{colorama.Fore.RESET}\n")
                 exit(1)
 
             except KeyboardInterrupt:
@@ -621,7 +621,7 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, L
 
     temp_files: List[str] = []
     temp_dirs: List[str] = []
-    repeted_dirs: List[str] = []
+    repeated_dirs: List[str] = []
 
     if search_from is None and not is_around:
         search_from = '/home'
@@ -632,11 +632,11 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, L
     if first_time == 1:
 
         if is_file:
-            show_search_infomation(arg_path, "file", search_from)
+            show_search_information(arg_path, "file", search_from)
         else:
-            show_search_infomation(arg_path, "folder", search_from)
+            show_search_information(arg_path, "folder", search_from)
 
-        show_note_massege_and_exit()
+        show_note_message_and_exit()
 
         if not is_around:
 
@@ -644,31 +644,31 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, L
 
                 if isinstance(search_from, str):
                     search_from = f'{search_from}'
-                    repeted_dirs = not_around(path, search_from)[1]
-                    path_ = repeted_dirs
+                    repeated_dirs = not_around(path, search_from)[1]
+                    path_ = repeated_dirs
                 else:
                     sprint(f"{colorama.Fore.LIGHTRED_EX}start point path should be a string.{colorama.Fore.RESET}")
                     exit(1)
             else:
                 if isinstance(search_from, str):
                     search_from = f'{search_from}'
-                    repeted_dirs = not_around(path, search_from)[0]
-                    path_ = repeted_dirs
+                    repeated_dirs = not_around(path, search_from)[0]
+                    path_ = repeated_dirs
                 else:
                     sprint(f"{colorama.Fore.LIGHTRED_EX}start point path should be a string.{colorama.Fore.RESET}")
                     exit(1)
 
         if len(path_) > 1 and isinstance(path_, list):
 
-            response: int = ask_for_file_path(repeted_dirs, input_copy_path)
+            response: int = ask_for_file_path(repeated_dirs, input_copy_path)
 
-            if response == len(repeted_dirs):
-                temp_dirs_list_for_all_dirs_opt: List[str] = repeted_dirs
+            if response == len(repeated_dirs):
+                temp_dirs_list_for_all_dirs_opt: List[str] = repeated_dirs
                 all_dirs = True
 
             try:
                 if not all_dirs:
-                    path_ = repeted_dirs[response]
+                    path_ = repeated_dirs[response]
 
             except IndexError:
                 sprint(f"\n\n{colorama.Fore.RED}This is not in the valid.{colorama.Fore.RESET}\n")
@@ -766,12 +766,12 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, L
     return list(set(temp_files))
 #  NOTE: reversing technique 
 def reveres_encryption(file_path: str, key: bytes, reverse_algorithm: Union[None, str]) -> None:
-    """Reveresing the encryption algorithms if one of them is faile.
+    """Reversing the encryption algorithms if one of them is failed.
 
     Args:
-        file_path (str): the file that failes.
-        key (bytes): Globle Encryption Key.
-        reverse_algorithm (Union[None, str]): the algorithm that faile.
+        file_path (str): the file that fails.
+        key (bytes): Globl Encryption Key.
+        reverse_algorithm (Union[None, str]): the algorithm that failed.
     """
     if reverse_algorithm.lower().strip() == 'aes':
         replace_encoding_text(file_path, "decrypted")
@@ -825,7 +825,7 @@ if __name__ == "__main__":
  \ V // _ \| |/ _` |/ -_)| '  \()/ _ \| '_||  _|(_-< 
   \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ {colorama.Fore.MAGENTA}[{colorama.Fore.CYAN}v{colorama.Fore.GREEN}{__version__}{colorama.Fore.MAGENTA}] 
                                                      
-{colorama.Fore.GREEN}A powrfull encryption tool made By {colorama.Fore.BLUE}Muhammed Alkohawaldeh{colorama.Fore.RESET}""")
+{colorama.Fore.GREEN}A powerful encryption tool made By {colorama.Fore.BLUE}Muhammed Alkohawaldeh{colorama.Fore.RESET}""")
 
             parser.print_help()
             exit(1)
@@ -839,7 +839,7 @@ if __name__ == "__main__":
  \ V // _ \| |/ _` |/ -_)| '  \()/ _ \| '_||  _|(_-< 
   \_/ \___/|_|\__,_|\___||_|_|_| \___/|_|   \__|/__/ {colorama.Fore.MAGENTA}[{colorama.Fore.CYAN}v{colorama.Fore.GREEN}{__version__}{colorama.Fore.MAGENTA}] 
                                                      
-{colorama.Fore.GREEN}A powrfull encryption tool made By {colorama.Fore.BLUE}Muhammed Alkohawaldeh{colorama.Fore.RESET}, User-Mode: [{get_user_mode()}]""")
+{colorama.Fore.GREEN}A powerful encryption tool made By {colorama.Fore.BLUE}Muhammed Alkohawaldeh{colorama.Fore.RESET}, User-Mode: [{get_user_mode()}]""")
 
     if want_to_check:
         version_checker()   # NOTE: Check for an updates
@@ -854,8 +854,8 @@ if __name__ == "__main__":
         exit(1)
 
     elif want_version and folder != None:
-        sprint(f"\n{colorama.Fore.RED}Error, cannot use `{colorama.Fore.YELLOW}--version{colorama.Fore.RED}` flage with any other flage or a file/folder name.{colorama.Fore.RESET}")
-        sprint(f"{colorama.Fore.YELLOW}Try {colorama.Fore.CYAN}`sudo voldemorts --version`{colorama.Fore.YELLOW} insteded.{colorama.Fore.RESET}")
+        sprint(f"\n{colorama.Fore.RED}Error, cannot use `{colorama.Fore.YELLOW}--version{colorama.Fore.RED}` flag with any other flag or a file/folder name.{colorama.Fore.RESET}")
+        sprint(f"{colorama.Fore.YELLOW}Try {colorama.Fore.CYAN}`sudo voldemorts --version`{colorama.Fore.YELLOW} instead.{colorama.Fore.RESET}")
         exit(1)
     
     del want_version
