@@ -770,7 +770,7 @@ def reveres_encryption(file_path: str, key: bytes, reverse_algorithm: Union[None
 
     Args:
         file_path (str): the file that fails.
-        key (bytes): Globl Encryption Key.
+        key (bytes): Global Encryption Key.
         reverse_algorithm (Union[None, str]): the algorithm that failed.
     """
     if reverse_algorithm.lower().strip() == 'aes':
