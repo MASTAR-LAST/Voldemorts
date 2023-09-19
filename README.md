@@ -66,7 +66,7 @@ sudo voldemorts [folder name] --encrypt --salt-size 128
 ```bash
 usage: voldemorts.py [-h] [-Ss SALT_SIZE] [-e] [-d] [-a] [-s [SKIPPED ...]] [-f] [-Sp START_POINT] [-Vc] [-v] [folder]
 
-File Encrypting Script with a Password
+File Encrypting Tool with a Password
 
 positional arguments:
   folder                Folder to encrypt/decrypt
