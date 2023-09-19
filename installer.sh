@@ -43,9 +43,9 @@ sudo chmod u+x voldemorts.py
 sudo cp voldemorts.py /bin/voldemorts
 sudo mv voldemorts.py /usr/bin/voldemorts
 
-sudo chmod u+x tracker_voldemort3600k.sh
-sudo cp tracker_voldemort3600k.sh /bin/tracker_voldemort3600k
-sudo mv tracker_voldemort3600k.sh /usr/bin/tracker_voldemort3600k
+sudo chmod u+x tool_updater25T.sh
+sudo cp tool_updater25T.sh /bin/tool_updater25T
+sudo mv tool_updater25T.sh /usr/bin/tool_updater25T
 
 echo ""
 echo ""

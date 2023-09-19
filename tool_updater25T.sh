@@ -21,8 +21,8 @@ echo ""
 echo ""
 
 echo "Rebuilding Tool..."
-sudo chmod u+x $2/voldemorts.sh
-sudo ./$2/voldemorts.sh
+sudo chmod u+x $2/installer.sh
+sudo ./$2/installer.sh
 
 
 
