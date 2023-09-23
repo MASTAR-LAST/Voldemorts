@@ -63,7 +63,7 @@ git clone https://github.com/MASTAR-LAST/Voldemorts.git && cd Voldemorts && sudo
 sudo voldemorts [folder name] --encrypt --salt-size 128
 ```
 ### Help
-```bash
+```
 usage: voldemorts.py [-h] [-Ss SALT_SIZE] [-e] [-d] [-a] [-s [SKIPPED ...]] [-f] [-Sp START_POINT] [-Vc] [-v] [folder]
 
 File Encrypting Tool with a Password
@@ -124,9 +124,12 @@ Version:
 5. **Organized help message** 🗃
 6. **More error handling** 🪛
 7. **Double-Check password** 🔑
+8. **More helpful report** 📃
 
 ### Fixed Bugs 🪲
 **issue numbers:** [#7](https://github.com/MASTAR-LAST/Voldemorts/issues/7) , [#6](https://github.com/MASTAR-LAST/Voldemorts/issues/6) , [#8](https://github.com/MASTAR-LAST/Voldemorts/issues/8) , [#9](https://github.com/MASTAR-LAST/Voldemorts/issues/9) 📍
+
+**Logical problems** 👨🏻‍💻
 
 # License 📑
 
