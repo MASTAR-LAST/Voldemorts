@@ -25,7 +25,7 @@
 
 
 ## Release v1.1.0 ☄️
-> **Release date _Sep 19, 2023_**
+> **Release date _Sep 23, 2023_**
 ### New Features 🌟
 
 1. **Fast elements searching** 👀
@@ -35,6 +35,9 @@
 5. **Organized help message** 🗃
 6. **More error handling** 🪛
 7. **Double-Check password** 🔑
+8. **More helpful report** 📃
 
 ### Fixed Bugs 🪲
 **issue numbers:** [#7](https://github.com/MASTAR-LAST/Voldemorts/issues/7) , [#6](https://github.com/MASTAR-LAST/Voldemorts/issues/6) , [#8](https://github.com/MASTAR-LAST/Voldemorts/issues/8) , [#9](https://github.com/MASTAR-LAST/Voldemorts/issues/9) 📍
+
+**Logical problems** 👨🏻‍💻
