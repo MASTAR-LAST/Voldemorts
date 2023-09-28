@@ -12,14 +12,14 @@ from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
-from random import sample
+from random import sample, choice
 
 from rich.progress import track
 from subprocess import check_output, run
 from typing import Union, LiteralString, Literal, List
 
 from fake_useragent import UserAgent
-from requests import get, Response
+from requests import get, Response, ConnectionError
 from bs4 import BeautifulSoup
 
 import os
@@ -34,7 +34,7 @@ import time
 import sys
 
 
-__version__: str = "1.1.0"
+__version__: str = "1.2.0"
 __status__: str = "stable" # NOTE: stable, beta, alpha for more information see <https://en.wikipedia.org/wiki/Software_release_life_cycle>
 
 ua = {"User-Agent": UserAgent().random}
@@ -44,9 +44,13 @@ def version_checker() -> None:
     """
     current_version: list[LiteralString] = __version__.split('.')
     sprint(f"\n{colorama.Fore.YELLOW}Check for updates...{colorama.Fore.RESET}\n")
-    response: Response = get("https://github.com/MASTAR-LAST/Voldemorts/tags", headers=ua)
-    if response.status_code != 200:
-        sprint(f"{colorama.Fore.RESET}Problem with internet..!\n{colorama.Fore.RESET}")
+    try:
+        response: Response = get("https://github.com/MASTAR-LAST/Voldemorts/tags", headers=ua)
+        if response.status_code != 200:
+            sprint(f"{colorama.Fore.RED}Error, Something goes wrong while request the server..!, Status Code <{response.status_code}>{colorama.Fore.RESET}")
+            return # NOTE: Arley return to stop the function
+    except ConnectionError:
+        sprint(f"{colorama.Fore.RED}No Internet Connection..!\n{colorama.Fore.RESET}")
         return # NOTE: Arley return to stop the function
     soup: BeautifulSoup = BeautifulSoup(response.text, 'html.parser')
     for link in soup.find_all("a", attrs={"class": "Link--primary Link"}).pop(0):
@@ -76,7 +80,7 @@ def version_checker() -> None:
                 tracker += 1
 
             if tracker == 3:
-                sprint(f"{colorama.Fore.GREEN}Your tool is up to date{colorama.Fore.RESET}\n")
+                sprint(f"{colorama.Fore.GREEN}Your tool is up to date{colorama.Fore.RESET}")
 
 def get_user_mode() -> str:
     """Get the user permissions
@@ -245,11 +249,11 @@ Note: Please open a new issue in GitHub and attach with your report how it happe
         return (False, "Error")
         
 
-def second_layer_encryption(password: str, filename: Union[str, list[str]]) -> Union[None, str]:
+def second_layer_encryption(password: bytes, filename: Union[str, list[str]]) -> Union[None, str]:
     """Encrypt the file with AES encryption algorithm
 
     Args:
-        password (str): the Global Encryption Key to encrypt the file with it 
+        password (bytes): the Global Encryption Key to encrypt the file with it 
         filename (str): file path
 
     Returns:
@@ -582,21 +586,30 @@ def replace_encoding_text(filename: Union[str, list[str]], status: str) -> Union
 
                 return "reverse"
 
+want_to_term = False
 
-def show_note_message_and_exit() -> None:
+def show_note_message_and_exit(term: bool = want_to_term) -> None:
     """print a warning messages and exit.
+    term (bool): if want to stop.
     """
+    term = want_to_term
+    if term:
+        return
     print(f"{colorama.Fore.LIGHTWHITE_EX}This process could take some time{colorama.Fore.RESET}")
     print(f"{colorama.Fore.LIGHTYELLOW_EX}PLEASE DON'T DELETE, CREATE OR UPDATE ANY FOLDER OR FILE WHILE THIS PROGRAM IS RUN.{colorama.Fore.RESET}\n")
 
-def show_search_information(name: str, type_: str, start_path: str) -> None:
+def show_search_information(name: str, type_: str, start_path: str, term: bool = want_to_term) -> None:
     """print general information about the encryption precess.
 
     Args:
         name (str): file name.
         type_ (str): file type, `folder` or `file`.
         start_path (str): the path that the tool will start searching from it.
+        term (bool): if want to stop.
     """
+    term = want_to_term
+    if term:
+        return
     date: datetime.datetime = datetime.datetime.now()
     sprint(f"\n[{colorama.Fore.LIGHTCYAN_EX}+{colorama.Fore.RESET}] {colorama.Style.BRIGHT}target name: {colorama.Fore.CYAN}{name}{colorama.Fore.RESET}{colorama.Style.RESET_ALL}")
     sprint(f"[{colorama.Fore.LIGHTCYAN_EX}+{colorama.Fore.RESET}] {colorama.Style.BRIGHT}target type: {colorama.Fore.CYAN}{type_}{colorama.Fore.RESET}{colorama.Style.RESET_ALL}")
@@ -777,7 +790,7 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, L
                                 continue
 
                         if each_file in ["voldemorts.py", "voldemorts", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}.salt"]:
-                            sprint(f"{colorama.Fore.RED}`{each_file.split('/')[-1]}` file cannot be encrypted/decrypted{colorama.Fore.RESET}")
+                            sprint(f"{colorama.Fore.RED}`{each_file}` file cannot be encrypted/decrypted{colorama.Fore.RESET}")
                             continue
                         files_temp_list.append(each_file)
                 return list(set(files_temp_list))
@@ -824,7 +837,7 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, L
                     if element in ["voldemorts.py", "voldemorts", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}.salt"]:
                         continue
 
-                    element = os.path.join(each_dir, element) # DEBUG: The `path_` var is a list when you use [all of them] option with a folder.
+                    element = os.path.join(each_dir, element)
 
                     if os.path.isfile(element):
                         temp_files.append(element)
@@ -862,33 +875,247 @@ def reveres_encryption(file_path: str, key: bytes, reverse_algorithm: Union[None
         decrypt(file_path, key)
         exit(1)
 
+default_hash_type = "sha256"
+
+def hash_calculator(file_path: Union[str, List[str]], hash_type: str = default_hash_type) -> Union[str, List[str]]:
+    """Calculate the hash for a file content.
+
+    Args:
+        file_path (Union[str, List[str]]): the path for a target file
+        hash_type (str): hash algorithm name
+
+    Returns:
+        Union[str, List[str]]: file hashes
+    """
+    hash_type = default_hash_type
+    if type(file_path) == list:
+        hashes: List[str] = []
+        for each_file in file_path:
+                with open(each_file, 'rb') as file:
+                    data = file.read()
+                match hash_type.lower():
+                    case 'sha1':
+                        hashes.append(hashlib.sha1(data).hexdigest())
+                    case 'md5':
+                        hashes.append(hashlib.md5(data).hexdigest())
+                    case 'sha224':
+                        hashes.append(hashlib.sha224(data).hexdigest())
+                    case 'sha256':
+                        hashes.append(hashlib.sha256(data).hexdigest())
+                    case 'sha384':
+                        hashes.append(hashlib.sha384(data).hexdigest())
+                    case 'sha512':
+                        hashes.append(hashlib.sha512(data).hexdigest())
+                    case 'whirlpool':
+                        hashes.append(hashlib.new('whirlpool', data).hexdigest())
+                    case 'ripemd160':
+                        hashes.append(hashlib.new('ripemd160', data).hexdigest())
+                    case 'sha3_224':
+                        hashes.append(hashlib.sha3_224(data).hexdigest())
+                    case 'sha3_256':
+                        hashes.append(hashlib.sha3_256(data).hexdigest())
+                    case 'sha3_384':
+                        hashes.append(hashlib.sha3_384(data).hexdigest())
+                    case 'sha3_512':
+                        hashes.append(hashlib.sha3_512(data).hexdigest())
+                    case 'shake_128':
+                        hashes.append(hashlib.shake_128(data).hexdigest())
+                    case 'shake_256':
+                        hashes.append(hashlib.shake_256(data).hexdigest())
+                    case 'blake2b':
+                        hashes.append(hashlib.blake2b(data).hexdigest())
+                    case 'blake2s':
+                        hashes.append(hashlib.blake2s(data).hexdigest())
+                    case _:
+                        hashes.append(hashlib.sha256(data.encode()).hexdigest())
+        return hashes
+    
+    else:
+        with open(file_path, 'rb') as file:
+            data = file.read()
+            match hash_type.lower():
+                case 'sha1':
+                    return hashlib.sha1(data).hexdigest()
+                case 'md5':
+                    return hashlib.md5(data).hexdigest()
+                case 'sha224':
+                    return hashlib.sha224(data).hexdigest()
+                case 'sha256':
+                    return hashlib.sha256(data).hexdigest()
+                case 'sha384':
+                    return hashlib.sha384(data).hexdigest()
+                case 'sha512':
+                    return hashlib.sha512(data).hexdigest()
+                case 'whirlpool':
+                    return hashlib.new('whirlpool', data).hexdigest()
+                case 'ripemd160':
+                    return hashlib.new('ripemd160', data).hexdigest()
+                case 'sha3_224':
+                    return hashlib.sha3_224(data).hexdigest()
+                case 'sha3_256':
+                    return hashlib.sha3_256(data).hexdigest()
+                case 'sha3_384':
+                    return hashlib.sha3_384(data).hexdigest()
+                case 'sha3_512':
+                    return hashlib.sha3_512(data).hexdigest()
+                case 'shake_128':
+                    return hashlib.shake_128(data).hexdigest()
+                case 'shake_256':
+                    return hashlib.shake_256(data).hexdigest()
+                case 'blake2b':
+                    return hashlib.blake2b(data).hexdigest()
+                case 'blake2s':
+                    return hashlib.blake2s(data).hexdigest()
+                case _:
+                    return hashlib.sha256(data).hexdigest()
+
+def ask_for_password(status: str) -> str:
+    """Ask the user to put a password.
+
+    Args:
+        status (str): Why are ask for the password, to `encrypt` of `decrypt`.
+
+    Returns:
+        str: return the password
+    """
+    
+    if status.lower() == 'encrypt':
+        chars: str = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm,./;'\[]=-0987654321`~?><:\"|}{_+)(*&^%$#@!"
+        random_salt = "".join(sample(chars, 20))
+
+        try:
+            password: str = getpass.getpass(f"\n{colorama.Fore.LIGHTCYAN_EX}Enter the password for encryption: {colorama.Fore.RESET}")
+            second_password: str = getpass.getpass(f"\n{colorama.Fore.LIGHTCYAN_EX}Double-Check password: {colorama.Fore.RESET}")
+            if hashlib.sha256((password+random_salt).encode()).hexdigest() != hashlib.sha256((second_password+random_salt).encode()).hexdigest():
+                sprint(f"{colorama.Fore.RED}Incorrect password !{colorama.Fore.RESET}")
+                exit(1)
+            del chars, random_salt, second_password # NOTE: Removing the variables from the memory, cuz it's not necessary any more
+            return password
+        except KeyboardInterrupt:
+            sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
+            exit(1)
+    elif status.lower() == 'decrypt':
+        try:
+            password: str = getpass.getpass(f"\n{colorama.Fore.LIGHTCYAN_EX}Enter the password you used for encryption: {colorama.Fore.RESET}")
+            return password
+        except KeyboardInterrupt:
+            sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
+            exit(1)
+
+def password_generator(charset: str, length: int) -> str:
+    """Password auto-generator function.
+
+    Args:
+        charset (str): the set of chars to chios from.
+        length (int): the length of the password.
+
+    Returns:
+        str: return the password
+    """
+    password = ''.join(choice(charset) for _ in range(length))
+    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+    file_path: str = f"{desktop_path}/auto_password_{hashlib.md5(password.encode()).hexdigest()}.pass"
+    try: 
+
+        with open(file_path, 'w') as passfile:
+            passfile.write(password)
+        sprint(f"\n{colorama.Fore.YELLOW}Your password in [{colorama.Fore.CYAN}{file_path}{colorama.Fore.YELLOW}].{colorama.Fore.RESET}\n") 
+    except Exception:
+        sprint(f"\n{colorama.Fore.RED}Can not make a file to save the password in it.{colorama.Fore.RESET}")
+        sprint(f"{colorama.Fore.RED}Encrypting process will stop at this point.{colorama.Fore.RESET}")
+        exit(1) #NOTE: in the future make sure to ask the user if he want to show up the password and continue or he want to stop.
+    return password 
+
 if __name__ == "__main__":
+
+    examples_for_help: str ="""Hash types that are currently available:
+
+    ------------------------------------------------
+    |    MD5    |  sha256   | whirlpool | sha3_256 |
+    |   sha1    |  sha384   | ripemd160 | sha3_384 |
+    |  sha224   |  sha521   | sha3_224  | sha3_512 |
+    | shake_128 | shake_256 | blake2b   | blake2s  |
+    ------------------------------------------------
+
+  * Any hash type not in this table will not work and will be replaced with sha256 as the default hash type
+
+Password Auto-generating:
+
+    * The password is auto-generated from ^[a-zA-Z0-9,./;'\[\]=\-0987654321`~?><:"|}{_+)(*&^%$#@!]{150}$ regex.
+    * you can use `--password` without `--length` and `--charset`.
+
+Examples:
+
+    These examples is just about how to encrypt and decrypt a file or directory
+
+    Files:
+        sudo voldemorts "FILE NAME" --encrypt --is-file --salt-size 256 --start-point $HOME/Desktop
+        sudo voldemorts "FILE NAME" --decrypt --is-file --start-point $HOME/Desktop
+    
+    Directories:
+        sudo voldemorts "DIRECTORY NAME" --encrypt --salt-size 256 --start-point $HOME/Desktop
+        sudo voldemorts "DIRECTORY NAME" --decrypt --start-point $HOME/Desktop"""
+
     import argparse
-    parser = argparse.ArgumentParser(description="""File Encrypting Tool with a Password""")
+    parser = argparse.ArgumentParser(description="""File Encrypting Tool with a Password""",
+                                     formatter_class=argparse.RawDescriptionHelpFormatter,
+                                     epilog=examples_for_help)
 
-    encryption_options = parser.add_argument_group(title="Encryption Options")
-    search_options = parser.add_argument_group(title="Search Options")
-    version_options = parser.add_argument_group(title="Version")
+    encryption_options = parser.add_argument_group(title="Encryption Options", description="Specifications of the encryption process")
+    search_options = parser.add_argument_group(title="Search Options", description="Scientific search customizations may make the search faster and more specific")
+    hash_options = parser.add_argument_group(title="Hash Options", description="Hash process customizations")
+    password_options = parser.add_argument_group(title="Password Options", description="Auto-generate password customization")
+    display_options = parser.add_argument_group(title="Display Options", description="What to display and what not")
+    version_options = parser.add_argument_group(title="Version", description="Version information and check for updates")
 
-    parser.add_argument("folder", help="Folder to encrypt/decrypt", nargs='?')
+    parser.add_argument("directory", help="Directory to encrypt/decrypt", nargs='?')
 
     encryption_options.add_argument("-Ss", "--salt-size", help="If this is set a new salt with the passed size is generated, take 16 as default", type=int)
-    encryption_options.add_argument("-e", "--encrypt", action="store_true", help="Whether to encrypt the file, only -e or -d can be specified.")
-    encryption_options.add_argument("-d", "--decrypt", action="store_true", help="Whether to decrypt the file, only -e or -d can be specified.")
+    encryption_options.add_argument("-e", "--encrypt", action="store_true", help="Whether to encrypt the file, only -e or -d can be specified")
+    encryption_options.add_argument("-d", "--decrypt", action="store_true", help="Whether to decrypt the file, only -e or -d can be specified")
+    # encryption_options.add_argument("-c", "--copy", default=None, help="Make an encrypted copy of the file/directory", type=str)   #NOTE: Make this flag useful.
 
-    search_options.add_argument("-a", "--is-around", action="store_true", help="If is around the tool will encrypt/decrypt all the files that is with it in the same folder")
+    hash_options.add_argument("-hash", "--get-hash", action="store_true", help="Calculate the hash sum of the files [before and after the whole encrypting process], default to 'sha256'")   #NOTE: Make this flag useful.
+    hash_options.add_argument("-He", "--hash-each", action="store_true", help="Calculate the hash sum of the files [before and after each encrypting layer process], default to 'sha256'")   #NOTE: Make this flag useful.
+    hash_options.add_argument("-t", "--hash-type", default="sha265", help="Specify the type of hash if it exists, default to 'sha256'")   #NOTE: Make this flag useful.
+
+    search_options.add_argument("-a", "--is-around", action="store_true", help="If is around the tool will encrypt/decrypt all the files that is with it in the same directory")
     search_options.add_argument("-s", "--skipped", help="If there is any file you want to ignored it", nargs='*', default=False, type=list[str])
     search_options.add_argument("-f", "--is-file", action="store_true", help="If the path is for a file")
     search_options.add_argument("-Sp", "--start-point", help="Determine the starting path of the search, take a path '/home' as default", type=str)
 
+    password_options.add_argument("-p", "--password", action="store_true", help="If you want to generate a random password")
+    password_options.add_argument("-l", "--length", default=150, help="Specify the length of the password, default to 150", type=int)
+    password_options.add_argument("-c", "--charset", default="QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm,./;'\[]=-0987654321`~?><:\"|}{_+)(*&^%$#@!", help="Specify the character set to choose from, default to 'ALL CHARS'", type=str)
+    
+
+    display_options.add_argument("-T", "--terminate", action="store_true", help="Do not show the information panel and warning note")
+
     version_options.add_argument("-Vc", "--version-check", help="Check the tool version before the execution", action="store_true")
     version_options.add_argument("-v", "--version", help="Print tool version and exit", action="store_true")
 
+    del examples_for_help
 
     args = parser.parse_args()
-    folder = args.folder
+    folder = args.directory
     want_to_check: bool = args.version_check
     want_version: bool = args.version
+    # copy_path: Union[None, str] = args.copy
+    want_full_hash: bool = args.get_hash
+    want_each_hash: bool = args.hash_each
+    hash_type: str = args.hash_type
+
+    want_to_skip_info: bool = args.terminate
+    
+    want_auto_pass: bool = args.password
+    pass_length: int = args.length
+    pass_charset: str = args.charset
+
+    if want_to_skip_info:
+        want_to_term = True
+    del want_to_skip_info
+
+    default_hash_type = hash_type
 
     if folder == None:
         if want_version:
@@ -922,22 +1149,33 @@ if __name__ == "__main__":
 
     if want_to_check:
         version_checker()   # NOTE: Check for an updates
-    del ua, UserAgent
 
-    del want_to_check
+    del want_to_check, ua, UserAgent
 
     start_point = args.start_point
-    encrypt_ = args.encrypt
-    decrypt_ = args.decrypt
-    is_file_ = args.is_file
+    encrypt_: bool = args.encrypt
+    decrypt_: bool = args.decrypt
+    is_file_: bool = args.is_file
 
     if encrypt_ and decrypt_: # NOTE: Always should be on the top of all checks. 
         sprint(f"\n{colorama.Fore.RED}Please specify whether you want to encrypt the file or decrypt it.{colorama.Fore.RESET}")
         exit(1)
 
+    if (want_full_hash or want_each_hash) and decrypt_:
+            sprint(f"\n{colorama.Fore.RED}Can not get the hash with decrypting flag.{colorama.Fore.RESET}")
+            exit(1)
+
+    if want_each_hash and want_full_hash:
+        sprint(f"\n{colorama.Fore.RED}Please specify whether you want a hash for each step or the hash for the whole process.{colorama.Fore.RESET}")
+        exit(1)
+
     elif want_version and folder != None:
         sprint(f"\n{colorama.Fore.RED}Error, cannot use `{colorama.Fore.YELLOW}--version{colorama.Fore.RED}` flag with any other flag or a file/folder name.{colorama.Fore.RESET}")
         sprint(f"{colorama.Fore.YELLOW}Try {colorama.Fore.CYAN}`sudo voldemorts --version`{colorama.Fore.YELLOW} instead.{colorama.Fore.RESET}")
+        exit(1)
+
+    if want_auto_pass and decrypt_:
+        sprint(f"\n{colorama.Fore.RED}Error, can not generate a password with decrypting process.{colorama.Fore.RESET}")
         exit(1)
     
     del want_version
@@ -945,28 +1183,16 @@ if __name__ == "__main__":
 
     if encrypt_:
 
-        chars: str = "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm,./;'\[]=-0987654321`~?><:\"|}{_+)(*&^%$#@!"
-        random_salt = "".join(sample(chars, 20))
-
-        try:
-            password: str = getpass.getpass(f"\n{colorama.Fore.LIGHTCYAN_EX}Enter the password for encryption: {colorama.Fore.RESET}")
-            second_password: str = getpass.getpass(f"\n{colorama.Fore.LIGHTCYAN_EX}Double-Check password: {colorama.Fore.RESET}")
-            if hashlib.sha256((password+random_salt).encode()).hexdigest() != hashlib.sha256((second_password+random_salt).encode()).hexdigest():
-                sprint(f"{colorama.Fore.RED}Incorrect password !{colorama.Fore.RESET}")
-                exit(1)
-            del chars, random_salt, second_password # NOTE: Removing the variables from the memory, cuz it's not necessary any more
-
-        except KeyboardInterrupt:
-            sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
-            exit(1)
+        if want_auto_pass:
+            password: str = password_generator(pass_charset, pass_length)
+        else:
+            password: str = ask_for_password('encrypt')
 
     elif decrypt_:
 
-        try:
-            password: str = getpass.getpass(f"\n{colorama.Fore.LIGHTCYAN_EX}Enter the password you used for encryption: {colorama.Fore.RESET}")
-        except KeyboardInterrupt:
-            sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
-            exit(1)
+        password: str = ask_for_password('decrypt')
+
+    del pass_charset, pass_length, want_auto_pass
 
     if args.salt_size:
 
@@ -1007,6 +1233,9 @@ if __name__ == "__main__":
         except NameError:
             sprint(f"\n{colorama.Fore.RED}Please specify whether you want to encrypt the file or decrypt it.{colorama.Fore.RESET}")
             exit(1)
+
+    hashes: dict[str, Union[str, List[str]]] = {}
+    files_hash: dict[str, dict[str, str]] = {}
         
     if encrypt_:
 
@@ -1016,117 +1245,80 @@ if __name__ == "__main__":
 
                 if args.skipped:
 
-                    if all_dirs:
-
-                        for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=True, search_from=start_point), description="Encrypting..."):
-                            fernet_status = encrypt(_file, key)
-                            if fernet_status == "reverse":
-                                reveres_encryption(_file, key, 'fernet')
-                            replacing_status = replace_encoding_text(_file, 'encrypted')
-                            if replacing_status == "reverse":
-                                reveres_encryption(_file, key, 'replacing')
-                            second_layer_status = second_layer_encryption(key, _file)
-                            if second_layer_status == "reverse":
-                                reveres_encryption(_file, key, 'AES')
-
-                    else:
-
-                        _file = filter(folder, is_around=True, skipped=args.skipped, is_file=True, search_from=start_point)
+                    for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=True, search_from=start_point), description="Encrypting..."):
+                        hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
                             reveres_encryption(_file, key, 'fernet')
+                        hashes.update({"first-layer": hash_calculator(_file)})
                         replacing_status = replace_encoding_text(_file, 'encrypted')
                         if replacing_status == "reverse":
                             reveres_encryption(_file, key, 'replacing')
+                        hashes.update({"second-layer": hash_calculator(_file)})
                         second_layer_status = second_layer_encryption(key, _file)
                         if second_layer_status == "reverse":
                             reveres_encryption(_file, key, 'AES')
+                        hashes.update({"third-layer": hash_calculator(_file)})
+                        files_hash.update({f"{_file}": hashes})
 
                 if not args.skipped:
 
-                    if all_dirs:
-
-                        for _file in track(filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point), description="Encrypting..."):
-                            fernet_status = encrypt(_file, key)
-                            if fernet_status == "reverse":
-                                reveres_encryption(_file, key, 'fernet')
-                            replacing_status = replace_encoding_text(_file, 'encrypted')
-                            if replacing_status == "reverse":
-                                reveres_encryption(_file, key, 'replacing')
-                            second_layer_status = second_layer_encryption(key, _file)
-                            if second_layer_status == "reverse":
-                                reveres_encryption(_file, key, 'AES')
-
-                    else:
-
-                        _file = filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point)
+                    for _file in track(filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point), description="Encrypting..."):
+                        hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
                             reveres_encryption(_file, key, 'fernet')
+                        hashes.update({"first-layer": hash_calculator(_file)})
                         replacing_status = replace_encoding_text(_file, 'encrypted')
                         if replacing_status == "reverse":
                             reveres_encryption(_file, key, 'replacing')
+                        hashes.update({"second-layer": hash_calculator(_file)})
                         second_layer_status = second_layer_encryption(key, _file)
                         if second_layer_status == "reverse":
                             reveres_encryption(_file, key, 'AES')
+                        hashes.update({"third-layer": hash_calculator(_file)})
+                        files_hash.update({f"{_file}": hashes})
+
 
             elif not is_file_:
 
                 if args.skipped:
 
-                    if all_dirs:
-
-                        for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point), description="Encrypting..."):
-                            fernet_status = encrypt(_file, key)
-                            if fernet_status == "reverse":
-                                reveres_encryption(_file, key, 'fernet')
-                            replacing_status = replace_encoding_text(_file, 'encrypted')
-                            if replacing_status == "reverse":
-                                reveres_encryption(_file, key, 'replacing')
-                            second_layer_status = second_layer_encryption(key, _file)
-                            if second_layer_status == "reverse":
-                                reveres_encryption(_file, key, 'AES')
-
-                    else:
-
-                        _file = filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point)
+                    for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point), description="Encrypting..."):
+                        hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
                             reveres_encryption(_file, key, 'fernet')
+                        hashes.update({"first-layer": hash_calculator(_file)})
                         replacing_status = replace_encoding_text(_file, 'encrypted')
                         if replacing_status == "reverse":
                             reveres_encryption(_file, key, 'replacing')
+                        hashes.update({"second-layer": hash_calculator(_file)})
                         second_layer_status = second_layer_encryption(key, _file)
                         if second_layer_status == "reverse":
                             reveres_encryption(_file, key, 'AES')
+                        hashes.update({"third-layer": hash_calculator(_file)})
+                        files_hash.update({f"{_file}": hashes})
+
 
                 elif not args.skipped:
 
-                     if all_dirs:
-
-                        for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point), description="Encrypting..."):
-                            fernet_status = encrypt(_file, key)
-                            if fernet_status == "reverse":
-                                reveres_encryption(_file, key, 'fernet')
-                            replacing_status = replace_encoding_text(_file, 'encrypted')
-                            if replacing_status == "reverse":
-                                reveres_encryption(_file, key, 'replacing')
-                            second_layer_status = second_layer_encryption(key, _file)
-                            if second_layer_status == "reverse":
-                                reveres_encryption(_file, key, 'AES')
-
-                     else:
-
-                        _file = filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)
+                    for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point), description="Encrypting..."):
+                        hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
                             reveres_encryption(_file, key, 'fernet')
+                        hashes.update({"first-layer": hash_calculator(_file)})
                         replacing_status = replace_encoding_text(_file, 'encrypted')
                         if replacing_status == "reverse":
                             reveres_encryption(_file, key, 'replacing')
+                        hashes.update({"second-layer": hash_calculator(_file)})
                         second_layer_status = second_layer_encryption(key, _file)
                         if second_layer_status == "reverse":
                             reveres_encryption(_file, key, 'AES')
+                        hashes.update({"third-layer": hash_calculator(_file)})
+                        files_hash.update({f"{_file}": hashes})
+
 
         elif not args.is_around:
 
@@ -1134,120 +1326,104 @@ if __name__ == "__main__":
 
                 if args.skipped:
 
-                    if all_dirs:
-
-                        for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=True, search_from=start_point), description="Encrypting..."):
-                            fernet_status = encrypt(_file, key)
-                            if fernet_status == "reverse":
-                                reveres_encryption(_file, key, 'fernet')
-                            replacing_status = replace_encoding_text(_file, 'encrypted')
-                            if replacing_status == "reverse":
-                                reveres_encryption(_file, key, 'replacing')
-                            second_layer_status = second_layer_encryption(key, _file)
-                            if second_layer_status == "reverse":
-                                reveres_encryption(_file, key, 'AES')
-
-                    else:
-
-                        _file = filter(folder, is_around=False, skipped=args.skipped, is_file=True, search_from=start_point)
+                    for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=True, search_from=start_point), description="Encrypting..."):
+                        hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
                             reveres_encryption(_file, key, 'fernet')
+                        hashes.update({"first-layer": hash_calculator(_file)})
                         replacing_status = replace_encoding_text(_file, 'encrypted')
                         if replacing_status == "reverse":
                             reveres_encryption(_file, key, 'replacing')
+                        hashes.update({"second-layer": hash_calculator(_file)})
                         second_layer_status = second_layer_encryption(key, _file)
                         if second_layer_status == "reverse":
                             reveres_encryption(_file, key, 'AES')
+                        hashes.update({"third-layer": hash_calculator(_file)})
+                        files_hash.update({f"{_file}": hashes})
+
 
                 elif not args.skipped:
 
-                        if all_dirs:
-
-                            for _file in track(filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point), description="Encrypting..."):
-                                fernet_status = encrypt(_file, key)
-                                if fernet_status == "reverse":
-                                    reveres_encryption(_file, key, 'fernet')
-                                replacing_status = replace_encoding_text(_file, 'encrypted')
-                                if replacing_status == "reverse":
-                                    reveres_encryption(_file, key, 'replacing')
-                                second_layer_status = second_layer_encryption(key, _file)
-                                if second_layer_status == "reverse":
-                                    reveres_encryption(_file, key, 'AES')
-
-                        else:
-
-                            _file = filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point)
+                        for _file in track(filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point), description="Encrypting..."):
+                            hashes.update({"source": hash_calculator(_file)})
                             fernet_status = encrypt(_file, key)
                             if fernet_status == "reverse":
                                 reveres_encryption(_file, key, 'fernet')
+                            hashes.update({"first-layer": hash_calculator(_file)})
                             replacing_status = replace_encoding_text(_file, 'encrypted')
                             if replacing_status == "reverse":
                                 reveres_encryption(_file, key, 'replacing')
+                            hashes.update({"second-layer": hash_calculator(_file)})
                             second_layer_status = second_layer_encryption(key, _file)
                             if second_layer_status == "reverse":
                                 reveres_encryption(_file, key, 'AES')
+                            hashes.update({"third-layer": hash_calculator(_file)})
+                            files_hash.update({f"{_file}": hashes})
+
 
             elif not is_file_:
 
                 if args.skipped:
 
-                    if all_dirs:
-
-                        for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point), description="Encrypting..."):
-                            fernet_status = encrypt(_file, key)
-                            if fernet_status == "reverse":
-                                reveres_encryption(_file, key, 'fernet')
-                            replacing_status = replace_encoding_text(_file, 'encrypted')
-                            if replacing_status == "reverse":
-                                reveres_encryption(_file, key, 'replacing')
-                            second_layer_status = second_layer_encryption(key, _file)
-                            if second_layer_status == "reverse":
-                                reveres_encryption(_file, key, 'AES')
-
-                    else:
-
-                        _file = filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point)
+                    for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point), description="Encrypting..."):
+                        hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
                             reveres_encryption(_file, key, 'fernet')
+                        hashes.update({"first-layer": hash_calculator(_file)})
                         replacing_status = replace_encoding_text(_file, 'encrypted')
                         if replacing_status == "reverse":
                             reveres_encryption(_file, key, 'replacing')
+                        hashes.update({"second-layer": hash_calculator(_file)})
                         second_layer_status = second_layer_encryption(key, _file)
                         if second_layer_status == "reverse":
                             reveres_encryption(_file, key, 'AES')
+                        hashes.update({"third-layer": hash_calculator(_file)})
+                        files_hash.update({f"{_file}": hashes})
+
 
                 elif not args.skipped:
 
-                    if all_dirs:
 
-                        for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point), description="Encrypting..."):
-                            fernet_status = encrypt(_file, key)
-                            if fernet_status == "reverse":
-                                reveres_encryption(_file, key, 'fernet')
-                            replacing_status = replace_encoding_text(_file, 'encrypted')
-                            if replacing_status == "reverse":
-                                reveres_encryption(_file, key, 'replacing')
-                            second_layer_status = second_layer_encryption(key, _file)
-                            if second_layer_status == "reverse":
-                                reveres_encryption(_file, key, 'AES')
-
-                    else:
-
-                        _file = filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point)
+                    for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point), description="Encrypting..."):
+                        hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
                             reveres_encryption(_file, key, 'fernet')
+                        hashes.update({"first-layer": hash_calculator(_file)})
                         replacing_status = replace_encoding_text(_file, 'encrypted')
                         if replacing_status == "reverse":
                             reveres_encryption(_file, key, 'replacing')
+                        hashes.update({"second-layer": hash_calculator(_file)})
                         second_layer_status = second_layer_encryption(key, _file)
                         if second_layer_status == "reverse":
                             reveres_encryption(_file, key, 'AES')
+                        hashes.update({"third-layer": hash_calculator(_file)})
+                        files_hash.update({f"{_file}": hashes})
 
 
         sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Encrypted successfully{colorama.Fore.RESET}")
+
+        if hash_type.lower() not in ['md5', 'sha1', 'sha224', 'sha256', 'sha384', 'sha512', 'whirlpool', 'ripemd160',
+                                     'sha3_224', 'sha3_256', 'sha3_384', 'sha3_512', 'shake_128', 'shake_256', 'blake2b', 'blake2s']:
+            hash_type = 'sha256'
+
+        if want_full_hash:
+            for file_name, hash_ in files_hash.items():
+                print(f"\n\n{colorama.Style.BRIGHT}{file_name}:")
+                print(f"\tSource Hash [{colorama.Fore.MAGENTA}{hash_type.lower()}{colorama.Fore.RESET}]: {colorama.Fore.CYAN}{hash_['source']}{colorama.Fore.RESET}")
+                print(f"\tEncrypted Hash [{colorama.Fore.MAGENTA}{hash_type.lower()}{colorama.Fore.RESET}]: {colorama.Fore.CYAN}{hash_['third-layer']}{colorama.Fore.RESET}{colorama.Style.RESET_ALL}\n\n")
+
+        elif want_each_hash:
+            for file_name, hash_ in files_hash.items():
+                print(f"\n\n{colorama.Style.BRIGHT}{file_name}:")
+                print(f"\tSource Hash [{colorama.Fore.MAGENTA}{hash_type.lower()}{colorama.Fore.RESET}]: {colorama.Fore.CYAN}{hash_['source']}{colorama.Fore.RESET}\n")
+                print(f"\tFirst Layer Hash [{colorama.Fore.MAGENTA}{hash_type.lower()}{colorama.Fore.RESET}]: {colorama.Fore.CYAN}{hash_['first-layer']}{colorama.Fore.RESET}\n")
+                print(f"\tSecond Layer Hash [{colorama.Fore.MAGENTA}{hash_type.lower()}{colorama.Fore.RESET}]: {colorama.Fore.CYAN}{hash_['second-layer']}{colorama.Fore.RESET}\n")
+                print(f"\tThird Layer Hash [{colorama.Fore.MAGENTA}{hash_type.lower()}{colorama.Fore.RESET}]: {colorama.Fore.CYAN}{hash_['third-layer']}{colorama.Fore.RESET}{colorama.Style.RESET_ALL}\n\n")
+
+
 
     elif decrypt_:
 
@@ -1256,188 +1432,93 @@ if __name__ == "__main__":
             if is_file_:
 
                 if args.skipped:
-
-                    if all_dirs:
                             
-                            for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=True, search_from=start_point), description="Decrypting..."):
-                                second_layer_decryption(key, _file)
-                                replace_encoding_text(_file, 'decrypted')
-                                if not decrypt(_file, key):
-                                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
-                                    exit(1)
-                            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
-
-                    else:
-
-                        _file = filter(folder, is_around=True, skipped=args.skipped, is_file=True, search_from=start_point)
+                    for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=True, search_from=start_point), description="Decrypting..."):
                         second_layer_decryption(key, _file)
                         replace_encoding_text(_file, 'decrypted')
                         if not decrypt(_file, key):
                             sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                             exit(1)
-                        sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File decrypted successfully{colorama.Fore.RESET}")
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
 
                 elif not args.skipped:
 
-                    if all_dirs:
-                            
-                            for _file in track(filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point), description="Decrypting..."):
-                                second_layer_decryption(key, _file)
-                                replace_encoding_text(_file, 'decrypted')
-                                if not decrypt(_file, key):
-                                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
-                                    exit(1)
-                            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
-
-                    else:
-
-                        _file = filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point)
+                    for _file in track(filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point), description="Decrypting..."):
                         second_layer_decryption(key, _file)
                         replace_encoding_text(_file, 'decrypted')
                         if not decrypt(_file, key):
                             sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                             exit(1)
-                        sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File decrypted successfully{colorama.Fore.RESET}")
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
                     
             elif not is_file_:
 
                 if args.skipped:
 
-                    if all_dirs:
-                            
-                            for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point), description="Decrypting..."):
-                                second_layer_decryption(key, _file)
-                                replace_encoding_text(_file, 'decrypted')
-                                if not decrypt(_file, key):
-                                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
-                                    exit(1)
-                            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
-
-                    else:
-
-                        _file = filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point)
+                    for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point), description="Decrypting..."):
                         second_layer_decryption(key, _file)
                         replace_encoding_text(_file, 'decrypted')
                         if not decrypt(_file, key):
                             sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                             exit(1)
-                        sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File decrypted successfully{colorama.Fore.RESET}")
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
 
                 elif not args.skipped:
-
-                    if all_dirs:
                             
-                            for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point), description="Decrypting..."):
-                                second_layer_decryption(key, _file)
-                                replace_encoding_text(_file, 'decrypted')
-                                if not decrypt(_file, key):
-                                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
-                                    exit(1)
-                            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
-
-                    else:
-
-                        _file = filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point)
+                    for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point), description="Decrypting..."):
                         second_layer_decryption(key, _file)
                         replace_encoding_text(_file, 'decrypted')
                         if not decrypt(_file, key):
                             sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                             exit(1)
-                        sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File decrypted successfully{colorama.Fore.RESET}")
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
 
         if not args.is_around:
 
             if is_file_:
 
                 if args.skipped:
-
-                    if all_dirs:
                             
-                            for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=True, search_from=start_point), description="Decrypting..."):
-                                second_layer_decryption(key, _file)
-                                replace_encoding_text(_file, 'decrypted')
-                                if not decrypt(_file, key):
-                                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
-                                    exit(1)
-                            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
-
-                    else:
-
-                        _file = filter(folder, is_around=False, skipped=args.skipped, is_file=True, search_from=start_point)
+                    for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=True, search_from=start_point), description="Decrypting..."):
                         second_layer_decryption(key, _file)
                         replace_encoding_text(_file, 'decrypted')
                         if not decrypt(_file, key):
                             sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                             exit(1)
-                        sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File decrypted successfully{colorama.Fore.RESET}")
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
 
                 elif not args.skipped:
 
-                    if all_dirs:
-                            
-                            for _file in track(filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point), description="Decrypting..."):
-                                second_layer_decryption(key, _file)
-                                replace_encoding_text(_file, 'decrypted')
-                                if not decrypt(_file, key):
-                                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
-                                    exit(1)
-                            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
-
-                    else:
-
-                        _file = filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point)
+                    for _file in track(filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point), description="Decrypting..."):
                         second_layer_decryption(key, _file)
                         replace_encoding_text(_file, 'decrypted')
                         if not decrypt(_file, key):
                             sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                             exit(1)
-                        sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File decrypted successfully{colorama.Fore.RESET}")
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
                     
             elif not is_file_:
 
                 if args.skipped:
-
-                    if all_dirs:
                             
-                            for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point), description="Decrypting..."):
-                                second_layer_decryption(key, _file)
-                                replace_encoding_text(_file, 'decrypted')
-                                if not decrypt(_file, key):
-                                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
-                                    exit(1)
-                            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
-
-                    else:
-
-                        _file = filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point)
+                    for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point), description="Decrypting..."):
                         second_layer_decryption(key, _file)
                         replace_encoding_text(_file, 'decrypted')
                         if not decrypt(_file, key):
                             sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                             exit(1)
-                        sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File decrypted successfully{colorama.Fore.RESET}")
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
 
                 elif not args.skipped:
 
-                    if all_dirs:
-                            
-                            for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point), description="Decrypting..."):
-                                second_layer_decryption(key, _file)
-                                replace_encoding_text(_file, 'decrypted')
-                                if not decrypt(_file, key):
-                                    sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
-                                    exit(1)
-                            sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
-
-                    else:
-
-                        _file = filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point)
+                    for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point), description="Decrypting..."):
                         second_layer_decryption(key, _file)
                         replace_encoding_text(_file, 'decrypted')
                         if not decrypt(_file, key):
                             sprint(f"{colorama.Fore.RED}Invalid token, most likely the password is incorrect{colorama.Fore.RESET}")
                             exit(1)
-                        sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File decrypted successfully{colorama.Fore.RESET}")
+                    sprint(f"\n{colorama.Fore.LIGHTGREEN_EX}File Decrypted successfully{colorama.Fore.RESET}")
+
     else:
          sprint(f"{colorama.Fore.RED}Please specify whether you want to encrypt the file or decrypt it.{colorama.Fore.RESET}")
          exit(1)
