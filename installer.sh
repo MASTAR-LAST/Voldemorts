@@ -30,6 +30,14 @@ sudo pip3 install colorama
 sudo pip3 install requests
 sudo pip3 install rich
 
+pip install beautifulsoup4
+pip install fake-useragent
+pip install cryptography
+pip install pycryptodome
+pip install colorama
+pip install requests
+pip install rich
+
 sudo apt-get install unzip
 
 echo ""
