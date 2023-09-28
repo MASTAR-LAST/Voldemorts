@@ -41,3 +41,21 @@
 **issue numbers:** [#7](https://github.com/MASTAR-LAST/Voldemorts/issues/7) , [#6](https://github.com/MASTAR-LAST/Voldemorts/issues/6) , [#8](https://github.com/MASTAR-LAST/Voldemorts/issues/8) , [#9](https://github.com/MASTAR-LAST/Voldemorts/issues/9) 📍
 
 **Logical problems** 👨🏻‍💻
+
+## Release v1.2.0 ☄️
+> **Release date _Sep 28, 2023_**
+### New Features 🌟
+
+1. **Help message update** 👀
+2. **Roadmap update** 🆙
+3. **Installer update** 🪛
+4. **Renaming Folder to Directory** 🙈
+5. **Many changes under the hood** 🤖
+6. **Hash sum with over a 16 hash algorithm** ⛓
+7. **Password auto-generator flag** 🧱
+
+
+### Fixed Bugs 🪲
+**No Bug Found** 💭
+
+**Logical Errors** 👨🏻‍💻
