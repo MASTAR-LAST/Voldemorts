@@ -60,37 +60,84 @@ git clone https://github.com/MASTAR-LAST/Voldemorts.git && cd Voldemorts && sudo
 ### Using instructions
 
 ```bash
-sudo voldemorts [folder name] --encrypt --salt-size 128
+sudo voldemorts [directory name] --encrypt --salt-size 128
 ```
 ### Help
 ```
-usage: voldemorts.py [-h] [-Ss SALT_SIZE] [-e] [-d] [-a] [-s [SKIPPED ...]] [-f] [-Sp START_POINT] [-Vc] [-v] [folder]
+usage: voldemorts.py [-h] [-Ss SALT_SIZE] [-e] [-d] [-hash] [-He] [-t HASH_TYPE] [-a] [-s [SKIPPED ...]] [-f]
+                     [-Sp START_POINT] [-T] [-Vc] [-v]
+                     [directory]
 
 File Encrypting Tool with a Password
 
 positional arguments:
-  folder                Folder to encrypt/decrypt
+  directory             Directory to encrypt/decrypt
 
 options:
   -h, --help            show this help message and exit
 
 Encryption Options:
+  Specifications of the encryption process
+
   -Ss SALT_SIZE, --salt-size SALT_SIZE
-                        If this is set, a new salt with the passed size is generated, take 16 as default
-  -e, --encrypt         Whether to encrypt the file, only -e or -d can be specified.
-  -d, --decrypt         Whether to decrypt the file, only -e or -d can be specified.
+                        If this is set a new salt with the passed size is generated, take 16 as default
+  -e, --encrypt         Whether to encrypt the file, only -e or -d can be specified
+  -d, --decrypt         Whether to decrypt the file, only -e or -d can be specified
 
 Search Options:
-  -a, --is-around       If is around, the tool will encrypt/decrypt all the files that is with it in the same folder
+  Scientific search customizations may make the search faster and more specific
+
+  -a, --is-around       If is around the tool will encrypt/decrypt all the files that is with it in the same
+                        directory
   -s [SKIPPED ...], --skipped [SKIPPED ...]
                         If there is any file you want to ignored it
   -f, --is-file         If the path is for a file
   -Sp START_POINT, --start-point START_POINT
                         Determine the starting path of the search, take a path '/home' as default
 
+Hash Options:
+  Hash process customizations
+
+  -hash, --get-hash     Calculate the hash sum of the files [before and after the whole encrypting process],
+                        default to 'sha256'
+  -He, --hash-each      Calculate the hash sum of the files [before and after each encrypting layer process],
+                        default to 'sha256'
+  -t HASH_TYPE, --hash-type HASH_TYPE
+                        Specify the type of hash if it exists, default to 'sha256'
+
+Display Options:
+  What to display and what not
+
+  -T, --terminate       Do not show the information panel and warning note
+
 Version:
+  Version information and check for updates
+
   -Vc, --version-check  Check the tool version before the execution
   -v, --version         Print tool version and exit
+
+Hash types that are currently available:
+
+    ------------------------------------------------
+    |    MD5    |  sha256   | whirlpool | sha3_256 |
+    |   sha1    |  sha384   | ripemd160 | sha3_384 |
+    |  sha224   |  sha521   | sha3_224  | sha3_512 |
+    | shake_128 | shake_256 | blake2b   | blake2s  |
+    ------------------------------------------------
+
+  * Any hash type not in this table will not work and will be replaced with sha256 as the default hash type
+
+Examples:
+
+    These examples is just about how to encrypt and decrypt a file or directory
+
+    Files:
+        sudo voldemorts "FILE NAME" --encrypt --is-file --salt-size 256 --start-point $HOME/Desktop
+        sudo voldemorts "FILE NAME" --decrypt --is-file --start-point $HOME/Desktop
+    
+    Directories:
+        sudo voldemorts "DIRECTORY NAME" --encrypt --salt-size 256 --start-point $HOME/Desktop
+        sudo voldemorts "DIRECTORY NAME" --decrypt --start-point $HOME/Desktop
 ```
 # Roadmap 🗺️
 1. **Hybrid encryption with *AES&Fernet*** - [*Done*] ✅
@@ -99,37 +146,38 @@ Version:
 4. **Fast file searching** - [*Done*] ✅
 5. **Auto decrypting side script** 🔄
 6. **Windows supporting** 🔄
-7. **Password auto-generation flag with length and character set** 🔄
+7. **Password auto-generation flag with length and character set** 🔄 - [*Done*] ✅
 8. **Caesar encryption layer** 🔄
 9. **RSA encryption flag** 🔄
-10. **Get hash flag** 🔄
-11. **More search options** 🔄
-12. **Stop at the first file you find flag** 🔄
+10. **Get hash flag** - [*Done*] ✅
+11. **More search options** 🔄 - [*In progress*]
+12. **Stop at the first file you find flag** 🔄 - [*In progress*]
 13. **Double checking password** - [*Done*] ✅
 14. **Expiry date for the file** 🔄
 15. **Electronic signature** 🔄
 16. **Split the file to parts depending on the memory size** 🔄
-17. **Make a encrypted copy of the file/folder** 🔄
+17. **Make a encrypted copy of the file/directory** 🔄 - [*In progress*]
 18. **Fast Encryption/Decryption files** 🔄
+19. **Remove image metadata flag before encrypting it** 🔄
 
 # Last Release Info 🕑
 
-## What's new in v1.1.0? ☄️
+## What's new in v1.2.0? ☄️
 ### New Features 🌟
 
-1. **Fast elements searching** 👀
-2. **Roadmap Update** 🆙
-3. **More meaningful file names** 💬
-4. **Changelog file** 🕑
-5. **Organized help message** 🗃
-6. **More error handling** 🪛
-7. **Double-Check password** 🔑
-8. **More helpful report** 📃
+1. **Help message update** 👀
+2. **Roadmap update** 🆙
+3. **Installer update** 🪛
+4. **Renaming Folder to Directory** 🙈
+5. **Many changes under the hood** 🤖
+6. **Hash sum with over a 16 hash algorithm** ⛓
+7. **Password auto-generator flag** 🧱
+
 
 ### Fixed Bugs 🪲
-**issue numbers:** [#7](https://github.com/MASTAR-LAST/Voldemorts/issues/7) , [#6](https://github.com/MASTAR-LAST/Voldemorts/issues/6) , [#8](https://github.com/MASTAR-LAST/Voldemorts/issues/8) , [#9](https://github.com/MASTAR-LAST/Voldemorts/issues/9) 📍
+**No Bug Found** 💭
 
-**Logical problems** 👨🏻‍💻
+**Logical Errors** 👨🏻‍💻
 
 # License 📑
 
