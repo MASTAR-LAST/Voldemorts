@@ -59,3 +59,19 @@
 **No Bug Found** 💭
 
 **Logical Errors** 👨🏻‍💻
+
+## Release v1.3.0 ☄️
+> **Release date _Jan 25, 2024_**
+### New Features 🌟
+
+1. **Hash function optimization** 🪛
+2. **Unwanted code cleaning** 🧹
+3. **Replace `-c` with `-cs` flag** ❄️
+4. **Copy file options** 💫
+5. **Improving the installer for fresh devices** 🤖
+6. **The ability to specify the groups from which the password is generated**
+7. **Passwords Log File** 🕵🏼‍♂️
+8. **Configuration file** 🔗
+
+### Fixed Bugs 🪲
+**issue numbers:** [#14](https://github.com/MASTAR-LAST/Voldemorts/issues/14) 📍
