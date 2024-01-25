@@ -1111,23 +1111,38 @@ if __name__ == "__main__":
 
     examples_for_help: str ="""Hash types that are currently available:
 
-    ------------------------------------------------
+    +----------------------------------------------+
     |    MD5    |  sha256   | whirlpool | sha3_256 |
     |   sha1    |  sha384   | ripemd160 | sha3_384 |
     |  sha224   |  sha521   | sha3_224  | sha3_512 |
     | shake_128 | shake_256 | blake2b   | blake2s  |
-    ------------------------------------------------
+    +----------------------------------------------+
 
   * Any hash type not in this table will not work and will be replaced with sha256 as the default hash type
 
 Password Auto-generating:
 
     * The password is auto-generated from ^[a-zA-Z0-9,./;'\[\]=\-0987654321`~?><:"|}{_+)(*&^%$#@!]{150}$ regex.
-    * you can use `--password` without `--length` and `--charset`.
+    * You can use `--password` without `--length` and `--charset`.
+    * Any password will be generated will be saved on the Desktop in a file with the name `$HOME/Desktop/auto_password_PASS-MD5-HASH.txt`
+
+    Character sets:
+
+        you can specify the character set combinations with this table:
+
+        | Shortcut | Character Set               |
+        |----------|-----------------------------|
+        | A-z      | All Capital & Small Letters |
+        | A-Z      | Capital Letters Only        |
+        | a-z      | Small Letters Only          |
+        | 0-9      | Numbers Only                |
+        | SC       | Special Characters Only     |
+
+        * To make a combination with sets just write the shortcuts after `-cs`/`--char-set` flag like `-cs A-z 0-9 SC` which is the default.
 
 Examples:
 
-    These examples is just about how to encrypt and decrypt a file or directory
+    These examples are just about how to encrypt and decrypt a file or directory
 
     Files:
         sudo voldemorts "FILE NAME" --encrypt --is-file --salt-size 256 --start-point $HOME/Desktop
@@ -1135,7 +1150,14 @@ Examples:
     
     Directories:
         sudo voldemorts "DIRECTORY NAME" --encrypt --salt-size 256 --start-point $HOME/Desktop
-        sudo voldemorts "DIRECTORY NAME" --decrypt --start-point $HOME/Desktop"""
+        sudo voldemorts "DIRECTORY NAME" --decrypt --start-point $HOME/Desktop
+
+
+Notes:
+    *** When you make a copy of a file/directory it will be saved on the Desktop in a directory called `Voldemorts_copied_files_MD5-FILE-NAME-HASH`
+    *** Any file/directory in `Voldemorts_copied_files_FILE-NAME-HASH` saved with name `FILE-NAME_volde_copy.FILE-EXT`
+    *** If you use `-c`/`--copy` or `-Pc`/`--perm-copy` with Root permissions then only root users will be able to open it
+    *** If you use a 'copying' method with a directory that has two or more files with the same name the deepest file will be the only one that will encrypted"""
 
     import argparse
     parser = argparse.ArgumentParser(description="""File Encrypting Tool with a Password""",
@@ -1143,6 +1165,7 @@ Examples:
                                      epilog=examples_for_help)
 
     encryption_options = parser.add_argument_group(title="Encryption Options", description="Specifications of the encryption process")
+    copy_options = parser.add_argument_group(title="Copy Options", description="Specifications of the copying process")
     search_options = parser.add_argument_group(title="Search Options", description="Scientific search customizations may make the search faster and more specific")
     hash_options = parser.add_argument_group(title="Hash Options", description="Hash process customizations")
     password_options = parser.add_argument_group(title="Password Options", description="Auto-generate password customization")
