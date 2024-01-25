@@ -16,11 +16,13 @@ from random import sample, choice
 
 from rich.progress import track
 from subprocess import check_output, run
-from typing import Union, LiteralString, Literal, List
+from typing import Union, Literal, List
 
 from fake_useragent import UserAgent
 from requests import get, Response, ConnectionError
 from bs4 import BeautifulSoup
+
+from configparser import ConfigParser
 
 import os
 import platform
@@ -32,9 +34,9 @@ import colorama
 import datetime
 import time
 import sys
+import shutil
 
-
-__version__: str = "1.2.0"
+__version__: str = "1.3.0"
 __status__: str = "stable" # NOTE: stable, beta, alpha for more information see <https://en.wikipedia.org/wiki/Software_release_life_cycle>
 
 ua = {"User-Agent": UserAgent().random}
@@ -42,7 +44,7 @@ ua = {"User-Agent": UserAgent().random}
 def version_checker() -> None:
     """Search for a new release in github repo.
     """
-    current_version: list[LiteralString] = __version__.split('.')
+    current_version = __version__.split('.')
     sprint(f"\n{colorama.Fore.YELLOW}Check for updates...{colorama.Fore.RESET}\n")
     try:
         response: Response = get("https://github.com/MASTAR-LAST/Voldemorts/tags", headers=ua)
@@ -66,7 +68,7 @@ def version_checker() -> None:
                     sprint(f"{colorama.Fore.YELLOW}Good Bye!{colorama.Fore.RESET}")
                     exit(0)
 
-                if user_response.strip().lower() in ['y', 'yes', 'yeah', '1']:
+                if user_response.strip().lower() in ['y', 'yes', 'yeah', '1', 'yup']:
                     sprint(f"{colorama.Fore.GREEN}Start installation...{colorama.Fore.RESET}")
                     tool_updater(soup)
 
@@ -82,7 +84,7 @@ def version_checker() -> None:
             if tracker == 3:
                 sprint(f"{colorama.Fore.GREEN}Your tool is up to date{colorama.Fore.RESET}")
 
-def get_user_mode() -> str:
+def get_user_mode(colored: bool = True) -> str:
     """Get the user permissions
 
     Returns:
@@ -93,9 +95,15 @@ def get_user_mode() -> str:
     UID: int = os.geteuid()
 
     if mode.lower().strip() == 'root' or UID == 0:
-        return f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT}Root{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
+        if colored:
+            return f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT}Root{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
+        else:
+            return "Root"
     else:
-        return f"{colorama.Fore.BLUE}{colorama.Style.BRIGHT}Regular User{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
+        if colored:
+            return f"{colorama.Fore.BLUE}{colorama.Style.BRIGHT}Regular User{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
+        else:
+            return "Regular User"
 
 def download_link_founder(page: BeautifulSoup) -> str:
     """generate the download link for a `.zip` file of the release.
@@ -412,6 +420,7 @@ def generate_key(password: str, salt_size: int = 16, load_existing_salt: bool = 
     Returns:
         bytes: return the Global Encryption Key aka GEK
     """
+    # random_salt: str = ''.join(choice("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`~!@#$%^&*()_-+={}[]|:;\"\'<>,.?/") for _ in range(120))
     filename: str = hashlib.md5((filename+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()
 
     if load_existing_salt:
@@ -696,7 +705,7 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, L
 
     Returns:
         Union[str, List[str]: return a `str` if you choose a file and want only one and return a `List[str]` if you want a dir.
-    """ 
+    """
 
     global all_dirs
 
@@ -773,13 +782,13 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, L
         try:
             if not all_dirs:
                 if os.path.isfile(path_):
-                    if path_ in ["voldemorts.py", "voldemorts", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}.salt"]:
+                    if path_.split('/')[-1] in ["voldemorts.py", "voldemorts", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}.salt"]: # DEBUG: FROM `path_` TO `path_.split('/')[-1]`
                         sprint(f"{colorama.Fore.RED}This file cannot be encrypted/decrypted{colorama.Fore.RESET}")
                         exit(1)
                     if isinstance(path_, list):
-                        return list(set(path_))[0]
+                        return list(set(path_)) # NOTE: THE [0] from this line have been removed
                     else:
-                        return path_
+                        return [path_] # NOTE: ADD A list() to the 'path_' var
             else:
                 files_temp_list: List[str] = []
                 for each_file in temp_dirs_list_for_all_dirs_opt:
@@ -887,87 +896,39 @@ def hash_calculator(file_path: Union[str, List[str]], hash_type: str = default_h
     Returns:
         Union[str, List[str]]: file hashes
     """
-    hash_type = default_hash_type
-    if type(file_path) == list:
-        hashes: List[str] = []
+    def get_hash(data, hash_type):
+        hash_functions = {
+            'sha1': hashlib.sha1,
+            'md5': hashlib.md5,
+            'sha224': hashlib.sha224,
+            'sha256': hashlib.sha256,
+            'sha384': hashlib.sha384,
+            'sha512': hashlib.sha512,
+            'whirlpool': lambda d: hashlib.new('whirlpool', d),
+            'ripemd160': lambda d: hashlib.new('ripemd160', d),
+            'sha3_224': hashlib.sha3_224,
+            'sha3_256': hashlib.sha3_256,
+            'sha3_384': hashlib.sha3_384,
+            'sha3_512': hashlib.sha3_512,
+            'shake_128': hashlib.shake_128,
+            'shake_256': hashlib.shake_256,
+            'blake2b': hashlib.blake2b,
+            'blake2s': hashlib.blake2s,
+            '_': lambda d: hashlib.sha256(d.encode())
+        }
+        return hash_functions.get(hash_type.lower(), hash_functions['_'])(data).hexdigest()
+
+    if isinstance(file_path, list):
+        hashes = []
         for each_file in file_path:
-                with open(each_file, 'rb') as file:
-                    data = file.read()
-                match hash_type.lower():
-                    case 'sha1':
-                        hashes.append(hashlib.sha1(data).hexdigest())
-                    case 'md5':
-                        hashes.append(hashlib.md5(data).hexdigest())
-                    case 'sha224':
-                        hashes.append(hashlib.sha224(data).hexdigest())
-                    case 'sha256':
-                        hashes.append(hashlib.sha256(data).hexdigest())
-                    case 'sha384':
-                        hashes.append(hashlib.sha384(data).hexdigest())
-                    case 'sha512':
-                        hashes.append(hashlib.sha512(data).hexdigest())
-                    case 'whirlpool':
-                        hashes.append(hashlib.new('whirlpool', data).hexdigest())
-                    case 'ripemd160':
-                        hashes.append(hashlib.new('ripemd160', data).hexdigest())
-                    case 'sha3_224':
-                        hashes.append(hashlib.sha3_224(data).hexdigest())
-                    case 'sha3_256':
-                        hashes.append(hashlib.sha3_256(data).hexdigest())
-                    case 'sha3_384':
-                        hashes.append(hashlib.sha3_384(data).hexdigest())
-                    case 'sha3_512':
-                        hashes.append(hashlib.sha3_512(data).hexdigest())
-                    case 'shake_128':
-                        hashes.append(hashlib.shake_128(data).hexdigest())
-                    case 'shake_256':
-                        hashes.append(hashlib.shake_256(data).hexdigest())
-                    case 'blake2b':
-                        hashes.append(hashlib.blake2b(data).hexdigest())
-                    case 'blake2s':
-                        hashes.append(hashlib.blake2s(data).hexdigest())
-                    case _:
-                        hashes.append(hashlib.sha256(data.encode()).hexdigest())
+            with open(each_file, 'rb') as file:
+                data = file.read()
+                hashes.append(get_hash(data, hash_type))
         return hashes
-    
     else:
         with open(file_path, 'rb') as file:
             data = file.read()
-            match hash_type.lower():
-                case 'sha1':
-                    return hashlib.sha1(data).hexdigest()
-                case 'md5':
-                    return hashlib.md5(data).hexdigest()
-                case 'sha224':
-                    return hashlib.sha224(data).hexdigest()
-                case 'sha256':
-                    return hashlib.sha256(data).hexdigest()
-                case 'sha384':
-                    return hashlib.sha384(data).hexdigest()
-                case 'sha512':
-                    return hashlib.sha512(data).hexdigest()
-                case 'whirlpool':
-                    return hashlib.new('whirlpool', data).hexdigest()
-                case 'ripemd160':
-                    return hashlib.new('ripemd160', data).hexdigest()
-                case 'sha3_224':
-                    return hashlib.sha3_224(data).hexdigest()
-                case 'sha3_256':
-                    return hashlib.sha3_256(data).hexdigest()
-                case 'sha3_384':
-                    return hashlib.sha3_384(data).hexdigest()
-                case 'sha3_512':
-                    return hashlib.sha3_512(data).hexdigest()
-                case 'shake_128':
-                    return hashlib.shake_128(data).hexdigest()
-                case 'shake_256':
-                    return hashlib.shake_256(data).hexdigest()
-                case 'blake2b':
-                    return hashlib.blake2b(data).hexdigest()
-                case 'blake2s':
-                    return hashlib.blake2s(data).hexdigest()
-                case _:
-                    return hashlib.sha256(data).hexdigest()
+            return get_hash(data, hash_type)
 
 def ask_for_password(status: str) -> str:
     """Ask the user to put a password.
@@ -1010,43 +971,178 @@ def password_generator(charset: str, length: int) -> str:
         length (int): the length of the password.
 
     Returns:
-        str: return the password
-    """
-    password = ''.join(choice(charset) for _ in range(length))
-    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+        str: return the password.
+    """ # TODO: Make the password saved in encrypted form and give the user the key to encrypt it or make the key as a part of the encrypted password itself.
+    password: str = ''.join(choice(charset) for _ in range(length))
+    
+    if get_user_mode(colored=False) == "Root":
+        config_file: ConfigParser = ConfigParser()
+        if get_user_mode(colored=False) == "Root":
+            config_file.read("../../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../../usr/
+        else:
+            config_file.read("../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../usr/
+        desktop_path: str = config_file["DEFAULT"]["DesktopPath"].strip("\"")
+        if desktop_path == "ENTER YOUR DESKTOP PATH HERE":
+            sprint(f"\n{colorama.Fore.YELLOW}You need to put your Desktop Path in the .config.ini file.{colorama.Fore.RESET}\n")
+            exit(1)
+    else:
+        desktop_path: str = run("echo $HOME/Desktop", shell=True, capture_output=True, text=True).stdout.strip('\n')
+
     file_path: str = f"{desktop_path}/auto_password_{hashlib.md5(password.encode()).hexdigest()}.pass"
+
     try: 
 
         with open(file_path, 'w') as passfile:
             passfile.write(password)
-        sprint(f"\n{colorama.Fore.YELLOW}Your password in [{colorama.Fore.CYAN}{file_path}{colorama.Fore.YELLOW}].{colorama.Fore.RESET}\n") 
+        sprint(f"\n{colorama.Fore.YELLOW}Your password in [{colorama.Fore.CYAN}{file_path}{colorama.Fore.YELLOW}].{colorama.Fore.RESET}\n")
+        password_info_logger(password, length, file_path)
     except Exception:
         sprint(f"\n{colorama.Fore.RED}Can not make a file to save the password in it.{colorama.Fore.RESET}")
         sprint(f"{colorama.Fore.RED}Encrypting process will stop at this point.{colorama.Fore.RESET}")
         exit(1) #NOTE: in the future make sure to ask the user if he want to show up the password and continue or he want to stop.
-    return password 
+    return password
+
+def password_info_logger(plaintext_password: str, password_length: int, password_path: str):#TODO: Make a DocString for this function
+    date_time = datetime.datetime.now()
+    try:
+        if get_user_mode(colored=False) == "Root":
+            with open("../../usr/volde_info/.password_generator_log.log", "a") as pass_log_file: #NOTE: JUST FOR RELEASING ../usr/
+                pass_log_file.write(f"""\n\n
+    Date: {date_time.strftime('%B %d, %Y')} 
+    Time: {date_time.strftime('%I:%M:%S %p')} 
+    passHash: {hashlib.sha1(plaintext_password.encode()).hexdigest()} 
+    passPath: {password_path}
+    passLength: {password_length} 
+    UserMood: {get_user_mode(colored=False)}
+    """)
+        else:
+            try:
+                answer_for_logging: str = input(f"""{colorama.Fore.YELLOW}This password will not be logged in the password log file, You need to rerun this program as a root user.
+{colorama.Fore.CYAN}Do you want to continue? {colorama.Fore.RESET}""")
+                if answer_for_logging.strip().lower() in ['y', 'yes', 'yeah', '1', 'yup']:
+                    pass
+                else:
+                    sprint(f"\n{colorama.Fore.CYAN}Program Ends...")
+                    exit(0)
+            except KeyboardInterrupt:
+                sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
+                exit(1)
+    except Exception:
+        sprint(f"\n{colorama.Fore.RED}An error occurred and we cannot record this password data in the password log.{colorama.Fore.RESET}")
+        try:
+            answer: str = input(f"\n{colorama.Fore.YELLOW}Do you want to continue without recording this data? {colorama.Fore.RESET}")
+            if answer.strip().lower() in ['y', 'yes', 'yeah', '1', 'yup']:
+                pass
+            else:
+                sprint(f"\n{colorama.Fore.CYAN}Program Ends...")
+                exit(0)
+        except KeyboardInterrupt:
+            sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
+            exit(1)
+
+
+
+count: int = 0
+copy_dir: str = ""
+
+def copy_file(source: str, copy_metadata: bool = False, copy_permissions: bool = False) -> str:
+    """Make a copy of the file
+
+    Args:
+        source (str): the file path
+        copy_metadata (bool, optional): want to copy the metadata. Defaults to False.
+        copy_permissions (bool, optional): want to copy the permissions. Defaults to False.
+    
+    Returns:
+        str: return the new file path.
+    """
+    global count, copy_dir
+
+    if get_user_mode(colored=False) == "Root":
+        config_file: ConfigParser = ConfigParser()
+        if get_user_mode(colored=False) == "Root":
+            config_file.read("../../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../../usr/
+        else:
+            config_file.read("../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../usr/
+        desktop_path: str = config_file["DEFAULT"]["DesktopPath"].strip("\"")
+        if desktop_path == "ENTER YOUR DESKTOP PATH HERE":
+            sprint(f"\n{colorama.Fore.YELLOW}You need to put your Desktop Path in the .config.ini file.{colorama.Fore.RESET}\n")
+            exit(1)
+    else:
+        desktop_path = run("echo $HOME/Desktop", shell=True, capture_output=True, text=True).stdout.strip('\n')
+
+    if count == 0:
+        copy_dir = f"{desktop_path}/Voldemorts_copied_files_{hashlib.md5(source.split('/')[-1].encode()).hexdigest()}"
+        destination_dir = copy_dir
+        try:
+            os.mkdir(destination_dir)
+        except FileExistsError:
+            sprint(f"{colorama.Fore.RED}Error, there is already a directory with the name {colorama.Fore.YELLOW}`{colorama.Fore.CYAN}Voldemorts_copied_files_{hashlib.md5(source.encode()).hexdigest()}{colorama.Fore.YELLOW}`{colorama.Fore.RESET}")
+            exit(1)
+    else:
+        destination_dir = copy_dir
+
+    count += 1
+
+    _, ext = os.path.splitext(source)
+    destination = os.path.join(destination_dir, f"{source.split('/')[-1]}_volde_copy{ext}")
+
+    try:
+        if copy_metadata:
+            shutil.copy2(source, destination)
+        else:
+            shutil.copy(source, destination)
+
+        if copy_permissions:
+            os.chmod(destination, 0o666)
+
+        return destination
+
+    except PermissionError:
+        sprint(f"{colorama.Fore.RED}Error, you do not have the permission to copy this file {colorama.Fore.YELLOW}`{colorama.Fore.CYAN}{source}{colorama.Fore.YELLOW}`{colorama.Fore.RESET}")
+        exit(1)
+
+    except Exception as e:
+        sprint(f"{colorama.Fore.RED}Error, something goes wrong while trying to copy this file {colorama.Fore.YELLOW}`{colorama.Fore.CYAN}{source}{colorama.Fore.YELLOW}`{colorama.Fore.RESET}")
+        exit(1)
+    
 
 if __name__ == "__main__":
 
     examples_for_help: str ="""Hash types that are currently available:
 
-    ------------------------------------------------
+    +----------------------------------------------+
     |    MD5    |  sha256   | whirlpool | sha3_256 |
     |   sha1    |  sha384   | ripemd160 | sha3_384 |
     |  sha224   |  sha521   | sha3_224  | sha3_512 |
     | shake_128 | shake_256 | blake2b   | blake2s  |
-    ------------------------------------------------
+    +----------------------------------------------+
 
   * Any hash type not in this table will not work and will be replaced with sha256 as the default hash type
 
 Password Auto-generating:
 
     * The password is auto-generated from ^[a-zA-Z0-9,./;'\[\]=\-0987654321`~?><:"|}{_+)(*&^%$#@!]{150}$ regex.
-    * you can use `--password` without `--length` and `--charset`.
+    * You can use `--password` without `--length` and `--charset`.
+    * Any password will be generated will be saved on the Desktop in a file with the name `$HOME/Desktop/auto_password_PASS-MD5-HASH.txt`
+
+    Character sets:
+
+        you can specify the character set combinations with this table:
+
+        | Shortcut | Character Set               |
+        |----------|-----------------------------|
+        | A-z      | All Capital & Small Letters |
+        | A-Z      | Capital Letters Only        |
+        | a-z      | Small Letters Only          |
+        | 0-9      | Numbers Only                |
+        | SC       | Special Characters Only     |
+
+        * To make a combination with sets just write the shortcuts after `-cs`/`--char-set` flag like `-cs A-z 0-9 SC` which is the default.
 
 Examples:
 
-    These examples is just about how to encrypt and decrypt a file or directory
+    These examples are just about how to encrypt and decrypt a file or directory
 
     Files:
         sudo voldemorts "FILE NAME" --encrypt --is-file --salt-size 256 --start-point $HOME/Desktop
@@ -1054,7 +1150,14 @@ Examples:
     
     Directories:
         sudo voldemorts "DIRECTORY NAME" --encrypt --salt-size 256 --start-point $HOME/Desktop
-        sudo voldemorts "DIRECTORY NAME" --decrypt --start-point $HOME/Desktop"""
+        sudo voldemorts "DIRECTORY NAME" --decrypt --start-point $HOME/Desktop
+
+
+Notes:
+    *** When you make a copy of a file/directory it will be saved on the Desktop in a directory called `Voldemorts_copied_files_MD5-FILE-NAME-HASH`
+    *** Any file/directory in `Voldemorts_copied_files_FILE-NAME-HASH` saved with name `FILE-NAME_volde_copy.FILE-EXT`
+    *** If you use `-c`/`--copy` or `-Pc`/`--perm-copy` with Root permissions then only root users will be able to open it
+    *** If you use a 'copying' method with a directory that has two or more files with the same name the deepest file will be the only one that will encrypted"""
 
     import argparse
     parser = argparse.ArgumentParser(description="""File Encrypting Tool with a Password""",
@@ -1062,6 +1165,7 @@ Examples:
                                      epilog=examples_for_help)
 
     encryption_options = parser.add_argument_group(title="Encryption Options", description="Specifications of the encryption process")
+    copy_options = parser.add_argument_group(title="Copy Options", description="Specifications of the copying process")
     search_options = parser.add_argument_group(title="Search Options", description="Scientific search customizations may make the search faster and more specific")
     hash_options = parser.add_argument_group(title="Hash Options", description="Hash process customizations")
     password_options = parser.add_argument_group(title="Password Options", description="Auto-generate password customization")
@@ -1073,11 +1177,15 @@ Examples:
     encryption_options.add_argument("-Ss", "--salt-size", help="If this is set a new salt with the passed size is generated, take 16 as default", type=int)
     encryption_options.add_argument("-e", "--encrypt", action="store_true", help="Whether to encrypt the file, only -e or -d can be specified")
     encryption_options.add_argument("-d", "--decrypt", action="store_true", help="Whether to decrypt the file, only -e or -d can be specified")
-    # encryption_options.add_argument("-c", "--copy", default=None, help="Make an encrypted copy of the file/directory", type=str)   #NOTE: Make this flag useful.
+
+    copy_options.add_argument("-c", "--copy", action="store_true", help="Make an encrypted copy of the file/directory, with metadata and permissions")   #NOTE: Make this flag useful.
+    copy_options.add_argument("-Pc", "--perm-copy", action="store_true", help="Make an encrypted copy of the file/directory, with permissions only")   #NOTE: Make this flag useful.
+    copy_options.add_argument("-Mc", "--meta-copy", action="store_true", help="Make an encrypted copy of the file/directory, with metadata only")   #NOTE: Make this flag useful.
+    copy_options.add_argument("-Cc", "--clean-copy", action="store_true", help="Make an encrypted copy of the file/directory, without metadata and permissions")   #NOTE: Make this flag useful.
 
     hash_options.add_argument("-hash", "--get-hash", action="store_true", help="Calculate the hash sum of the files [before and after the whole encrypting process], default to 'sha256'")   #NOTE: Make this flag useful.
     hash_options.add_argument("-He", "--hash-each", action="store_true", help="Calculate the hash sum of the files [before and after each encrypting layer process], default to 'sha256'")   #NOTE: Make this flag useful.
-    hash_options.add_argument("-t", "--hash-type", default="sha265", help="Specify the type of hash if it exists, default to 'sha256'")   #NOTE: Make this flag useful.
+    hash_options.add_argument("-t", "--hash-type", default="sha265", help="Specify the type of hash if it exists, default to 'sha256'")
 
     search_options.add_argument("-a", "--is-around", action="store_true", help="If is around the tool will encrypt/decrypt all the files that is with it in the same directory")
     search_options.add_argument("-s", "--skipped", help="If there is any file you want to ignored it", nargs='*', default=False, type=list[str])
@@ -1086,8 +1194,8 @@ Examples:
 
     password_options.add_argument("-p", "--password", action="store_true", help="If you want to generate a random password")
     password_options.add_argument("-l", "--length", default=150, help="Specify the length of the password, default to 150", type=int)
-    password_options.add_argument("-c", "--charset", default="QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm,./;'\[]=-0987654321`~?><:\"|}{_+)(*&^%$#@!", help="Specify the character set to choose from, default to 'ALL CHARS'", type=str)
-    
+    password_options.add_argument("-cs", "--charset", nargs='*', default="QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm,./;'\[]=-0987654321`~?><:\"|}{_+)(*&^%$#@!", help="Specify the character set to choose from, default to 'ALL CHARS'", type=str)
+
 
     display_options.add_argument("-T", "--terminate", action="store_true", help="Do not show the information panel and warning note")
 
@@ -1100,7 +1208,12 @@ Examples:
     folder = args.directory
     want_to_check: bool = args.version_check
     want_version: bool = args.version
-    # copy_path: Union[None, str] = args.copy
+
+    copy_all_path: bool = args.copy
+    copy_perm_path: bool = args.perm_copy
+    copy_meta_path: bool = args.meta_copy
+    copy_none_path: bool = args.clean_copy
+
     want_full_hash: bool = args.get_hash
     want_each_hash: bool = args.hash_each
     hash_type: str = args.hash_type
@@ -1109,7 +1222,7 @@ Examples:
     
     want_auto_pass: bool = args.password
     pass_length: int = args.length
-    pass_charset: str = args.charset
+    pass_charset: List[str] = args.charset
 
     if want_to_skip_info:
         want_to_term = True
@@ -1160,9 +1273,13 @@ Examples:
     if encrypt_ and decrypt_: # NOTE: Always should be on the top of all checks. 
         sprint(f"\n{colorama.Fore.RED}Please specify whether you want to encrypt the file or decrypt it.{colorama.Fore.RESET}")
         exit(1)
+    
+    if (copy_all_path and copy_none_path) or (copy_none_path and copy_perm_path) or (copy_perm_path and copy_all_path):
+        sprint(f"{colorama.Fore.RED}Error, you allowed to use one `copy` method flag only.{colorama.Fore.RESET}")
+        exit(1)
 
     if (want_full_hash or want_each_hash) and decrypt_:
-            sprint(f"\n{colorama.Fore.RED}Can not get the hash with decrypting flag.{colorama.Fore.RESET}")
+            sprint(f"\n{colorama.Fore.RED}Cannot get the hash with decrypting flag.{colorama.Fore.RESET}")
             exit(1)
 
     if want_each_hash and want_full_hash:
@@ -1175,7 +1292,7 @@ Examples:
         exit(1)
 
     if want_auto_pass and decrypt_:
-        sprint(f"\n{colorama.Fore.RED}Error, can not generate a password with decrypting process.{colorama.Fore.RESET}")
+        sprint(f"\n{colorama.Fore.RED}Error, cannot generate a password with decrypting process.{colorama.Fore.RESET}")
         exit(1)
     
     del want_version
@@ -1184,6 +1301,28 @@ Examples:
     if encrypt_:
 
         if want_auto_pass:
+
+            if pass_charset != "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm,./;'\[]=-0987654321`~?><:\"|}{_+)(*&^%$#@!":
+
+                temp_char_sets: List[str] = []
+
+                for char_set in pass_charset:
+
+                    if char_set == "A-Z":
+                        temp_char_sets.append("QWERTYUIOPASDFGHJKLZXCVBNM")
+                    elif char_set == "a-z":
+                        temp_char_sets.append("qwertyuiopasdfghjklzxcvbnm")
+                    elif char_set in ["A-z", "a-Z"]:
+                        temp_char_sets.append("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM")
+                    elif char_set == "0-9":
+                        temp_char_sets.append("0123456789")
+                    elif char_set.lower() == "sc":
+                        temp_char_sets.append(",./;'\[]=-`~?><:\"|}{_+)(*&^%$#@!")
+
+                pass_charset = "".join(temp_char_sets)
+
+                del temp_char_sets
+
             password: str = password_generator(pass_charset, pass_length)
         else:
             password: str = ask_for_password('encrypt')
@@ -1198,16 +1337,8 @@ Examples:
 
         if decrypt_:
 
-            result = input(f"{colorama.Fore.YELLOW}If you set a new salt during the decryption process, this will cause the loss of the old salt that this file was encrypted with, and you will not be able to decrypt it. {colorama.Fore.MAGENTA}Do you want to continue like this{colorama.Fore.MAGENTA}[{colorama.Fore.GREEN}y{colorama.Fore.YELLOW}/{colorama.Fore.RED}N{colorama.Fore.MAGENTA}]{colorama.Fore.WHITE}? {colorama.Fore.RESET}")
+            sprint(f"{colorama.Fore.RED}Error, cannot make new salt during the decryption process because this will lead to lose your data.{colorama.Fore.RESET}")
 
-            if result.strip().lower() in ['y', 'yes', 'yeah', '1']:
-                del result
-                key: bytes = generate_key(password, salt_size=args.salt_size, save_salt=True, filename=folder)
-
-                del password
-            else:
-                sprint(f"{colorama.Fore.BLUE}Rerun this program again if you want to encrypt anything without this mistake !{colorama.Fore.RESET}")
-                exit(0)
         else:
             key: bytes = generate_key(password, salt_size=args.salt_size, save_salt=True)
 
@@ -1217,11 +1348,11 @@ Examples:
             if encrypt_:
                 try:
                     result_ = input(f"{colorama.Fore.YELLOW}You did not set a salt size, so it well be {colorama.Fore.MAGENTA}16{colorama.Fore.YELLOW} as a default value, {colorama.Fore.CYAN}Did you want to continue {colorama.Fore.MAGENTA}[{colorama.Fore.GREEN}y{colorama.Fore.YELLOW}/{colorama.Fore.RED}N{colorama.Fore.MAGENTA}]{colorama.Fore.WHITE}? {colorama.Fore.RESET}")
-                    if result_.strip().lower() in ['y', 'yes', 'yeah', '1']:
+                    if result_.strip().lower() in ['y', 'yes', 'yeah', '1', 'yup']:
                         key: bytes = generate_key(password, salt_size=16, save_salt=True)
                         del password
                     else:
-                        sprint(f"{colorama.Fore.BLUE}Rerun this program again if you want to encrypt anything without this mistake !{colorama.Fore.RESET}")
+                        sprint(f"{colorama.Fore.BLUE}Rerun this program again if you want to encrypt anything without this mistake !{colorama.Fore.RESET}", second=0.02)
                         exit(0)
                 except KeyboardInterrupt:
                     sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
@@ -1236,7 +1367,11 @@ Examples:
 
     hashes: dict[str, Union[str, List[str]]] = {}
     files_hash: dict[str, dict[str, str]] = {}
-        
+
+    if copy_all_path:
+        copy_meta_path = True
+        copy_perm_path = True
+
     if encrypt_:
 
         if args.is_around:
@@ -1246,6 +1381,8 @@ Examples:
                 if args.skipped:
 
                     for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=True, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1264,6 +1401,8 @@ Examples:
                 if not args.skipped:
 
                     for _file in track(filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1285,6 +1424,8 @@ Examples:
                 if args.skipped:
 
                     for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1304,6 +1445,8 @@ Examples:
                 elif not args.skipped:
 
                     for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1327,6 +1470,8 @@ Examples:
                 if args.skipped:
 
                     for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=True, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1346,6 +1491,8 @@ Examples:
                 elif not args.skipped:
 
                         for _file in track(filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point), description="Encrypting..."):
+                            if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                                _file = copy_file(_file, copy_meta_path, copy_perm_path)
                             hashes.update({"source": hash_calculator(_file)})
                             fernet_status = encrypt(_file, key)
                             if fernet_status == "reverse":
@@ -1367,6 +1514,8 @@ Examples:
                 if args.skipped:
 
                     for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1387,6 +1536,8 @@ Examples:
 
 
                     for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":

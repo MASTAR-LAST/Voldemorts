@@ -1,6 +1,6 @@
 # Voldemorts
-**Voldemorts** is a powerful tool capable of encrypting files in various formats with *Fernet* and *AES* encrypting with a salt with a default value of 16 bytes that can be changed and a password to encrypt and decrypt these files. 🔐
-![Screenshot_2023-08-03_01-48-16](https://github.com/MASTAR-LAST/Voldemorts/assets/79379000/9fffdab4-c3a2-4bd9-a432-f07213fd3050)
+**Voldemorts** is a huge and powerful tool capable of encrypting files in various formats with *Fernet* and _AES_ encrypting algorithms, salt with a default value of 16 bytes that can be changed and a password to encrypt and decrypt these files. 🔐
+![Screenshot_2024-01-24_09-58-59](https://github.com/MASTAR-LAST/Voldemorts/assets/79379000/7d744b57-bd01-4f09-83ef-5bd565ce0ce2)
 
 <p align="center">
   <a href="https://www.linkedin.com/in/muhammed-al-kohawaldeh-2a1295245/" alt="LinkedIn">
@@ -47,7 +47,7 @@
 | Audios 🔊   | No tests yet 🔬 |
 | Extra Formats 🔰  | .exe .dll .ocx .drv |
 
-
+>Last Test in **_No Date_** for version **No Version**
 
 ## Installation 📥
 #### Install the tool with Git ![Git](https://github.com/MASTAR-LAST/Science/assets/79379000/1594eb5f-fc68-4255-9c3d-5f6340a045f2)
@@ -62,83 +62,7 @@ git clone https://github.com/MASTAR-LAST/Voldemorts.git && cd Voldemorts && sudo
 ```bash
 sudo voldemorts [directory name] --encrypt --salt-size 128
 ```
-### Help
-```
-usage: voldemorts.py [-h] [-Ss SALT_SIZE] [-e] [-d] [-hash] [-He] [-t HASH_TYPE] [-a] [-s [SKIPPED ...]] [-f]
-                     [-Sp START_POINT] [-T] [-Vc] [-v]
-                     [directory]
 
-File Encrypting Tool with a Password
-
-positional arguments:
-  directory             Directory to encrypt/decrypt
-
-options:
-  -h, --help            show this help message and exit
-
-Encryption Options:
-  Specifications of the encryption process
-
-  -Ss SALT_SIZE, --salt-size SALT_SIZE
-                        If this is set a new salt with the passed size is generated, take 16 as default
-  -e, --encrypt         Whether to encrypt the file, only -e or -d can be specified
-  -d, --decrypt         Whether to decrypt the file, only -e or -d can be specified
-
-Search Options:
-  Scientific search customizations may make the search faster and more specific
-
-  -a, --is-around       If is around the tool will encrypt/decrypt all the files that is with it in the same
-                        directory
-  -s [SKIPPED ...], --skipped [SKIPPED ...]
-                        If there is any file you want to ignored it
-  -f, --is-file         If the path is for a file
-  -Sp START_POINT, --start-point START_POINT
-                        Determine the starting path of the search, take a path '/home' as default
-
-Hash Options:
-  Hash process customizations
-
-  -hash, --get-hash     Calculate the hash sum of the files [before and after the whole encrypting process],
-                        default to 'sha256'
-  -He, --hash-each      Calculate the hash sum of the files [before and after each encrypting layer process],
-                        default to 'sha256'
-  -t HASH_TYPE, --hash-type HASH_TYPE
-                        Specify the type of hash if it exists, default to 'sha256'
-
-Display Options:
-  What to display and what not
-
-  -T, --terminate       Do not show the information panel and warning note
-
-Version:
-  Version information and check for updates
-
-  -Vc, --version-check  Check the tool version before the execution
-  -v, --version         Print tool version and exit
-
-Hash types that are currently available:
-
-    ------------------------------------------------
-    |    MD5    |  sha256   | whirlpool | sha3_256 |
-    |   sha1    |  sha384   | ripemd160 | sha3_384 |
-    |  sha224   |  sha521   | sha3_224  | sha3_512 |
-    | shake_128 | shake_256 | blake2b   | blake2s  |
-    ------------------------------------------------
-
-  * Any hash type not in this table will not work and will be replaced with sha256 as the default hash type
-
-Examples:
-
-    These examples is just about how to encrypt and decrypt a file or directory
-
-    Files:
-        sudo voldemorts "FILE NAME" --encrypt --is-file --salt-size 256 --start-point $HOME/Desktop
-        sudo voldemorts "FILE NAME" --decrypt --is-file --start-point $HOME/Desktop
-    
-    Directories:
-        sudo voldemorts "DIRECTORY NAME" --encrypt --salt-size 256 --start-point $HOME/Desktop
-        sudo voldemorts "DIRECTORY NAME" --decrypt --start-point $HOME/Desktop
-```
 # Roadmap 🗺️
 1. **Hybrid encryption with *AES&Fernet*** - [*Done*] ✅
 2. **Auto reversing for encryption layers if one is failed** - [*Done*] ✅
@@ -146,38 +70,38 @@ Examples:
 4. **Fast file searching** - [*Done*] ✅
 5. **Auto decrypting side script** 🔄
 6. **Windows supporting** 🔄
-7. **Password auto-generation flag with length and character set** 🔄 - [*Done*] ✅
+7. **Password auto-generation flag with length and character set** - [*Done*] ✅
 8. **Caesar encryption layer** 🔄
 9. **RSA encryption flag** 🔄
 10. **Get hash flag** - [*Done*] ✅
-11. **More search options** 🔄 - [*In progress*]
+11. **More search options** 🔄
 12. **Stop at the first file you find flag** 🔄 - [*In progress*]
 13. **Double checking password** - [*Done*] ✅
 14. **Expiry date for the file** 🔄
 15. **Electronic signature** 🔄
-16. **Split the file to parts depending on the memory size** 🔄
-17. **Make a encrypted copy of the file/directory** 🔄 - [*In progress*]
+16. **Split the file into parts depending on the memory size** 🔄
+17. **Make an encrypted copy of the file/directory** - [*Done*] ✅
 18. **Fast Encryption/Decryption files** 🔄
-19. **Remove image metadata flag before encrypting it** 🔄
+19. **Remove the image metadata flag before encrypting it** 🔄
 
 # Last Release Info 🕑
 
-## What's new in v1.2.0? ☄️
+## What's new in v1.3.0? ☄️
 ### New Features 🌟
 
-1. **Help message update** 👀
-2. **Roadmap update** 🆙
-3. **Installer update** 🪛
-4. **Renaming Folder to Directory** 🙈
-5. **Many changes under the hood** 🤖
-6. **Hash sum with over a 16 hash algorithm** ⛓
-7. **Password auto-generator flag** 🧱
-
+1. **Hash function optimization** 🪛
+2. **Unwanted code cleaning** 🧹
+3. **Replace `-c` with `-cs` flag** ❄️
+4. **Copy file options** 💫
+5. **Improving the installer for fresh devices** 🤖
+6. **The ability to specify the groups from which the password is generated**
+7. **Passwords Log File** 🕵🏼‍♂️
+8. **Configuration file** 🔗
 
 ### Fixed Bugs 🪲
-**No Bug Found** 💭
+**issue numbers:** [#14](https://github.com/MASTAR-LAST/Voldemorts/issues/14) 📍
 
-**Logical Errors** 👨🏻‍💻
+> **You can find password log file & configuration file in /usr/volde_info as a hidden files**
 
 # License 📑
 
@@ -215,4 +139,6 @@ SOFTWARE.
 ## Note  📌
 **Use this tool in a super user mood.** 🥷🏼
 
->  📛WARNING📛: ⚠️DO NOT ENCRYPT THE SAME FILE TWO TIMES OR YOU WILL BE UNABLE TO DECRYPT IT AGAIN⚠️
+**The supported file formats table has a test time and version in its footer, any version that is released without updating the table could be not safe for any file formats _except text files._**
+
+**📛WARNING📛: ⚠️DO NOT ENCRYPT THE SAME FILE TWO TIMES OR YOU WILL BE UNABLE TO DECRYPT IT AGAIN⚠️**
