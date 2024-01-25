@@ -84,7 +84,7 @@ def version_checker() -> None:
             if tracker == 3:
                 sprint(f"{colorama.Fore.GREEN}Your tool is up to date{colorama.Fore.RESET}")
 
-def get_user_mode() -> str:
+def get_user_mode(colored: bool = True) -> str:
     """Get the user permissions
 
     Returns:
@@ -95,9 +95,15 @@ def get_user_mode() -> str:
     UID: int = os.geteuid()
 
     if mode.lower().strip() == 'root' or UID == 0:
-        return f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT}Root{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
+        if colored:
+            return f"{colorama.Fore.GREEN}{colorama.Style.BRIGHT}Root{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
+        else:
+            return "Root"
     else:
-        return f"{colorama.Fore.BLUE}{colorama.Style.BRIGHT}Regular User{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
+        if colored:
+            return f"{colorama.Fore.BLUE}{colorama.Style.BRIGHT}Regular User{colorama.Style.RESET_ALL}{colorama.Fore.RESET}"
+        else:
+            return "Regular User"
 
 def download_link_founder(page: BeautifulSoup) -> str:
     """generate the download link for a `.zip` file of the release.
@@ -414,6 +420,7 @@ def generate_key(password: str, salt_size: int = 16, load_existing_salt: bool = 
     Returns:
         bytes: return the Global Encryption Key aka GEK
     """
+    # random_salt: str = ''.join(choice("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`~!@#$%^&*()_-+={}[]|:;\"\'<>,.?/") for _ in range(120))
     filename: str = hashlib.md5((filename+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()
 
     if load_existing_salt:
@@ -775,13 +782,13 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, L
         try:
             if not all_dirs:
                 if os.path.isfile(path_):
-                    if path_ in ["voldemorts.py", "voldemorts", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}.salt"]:
+                    if path_.split('/')[-1] in ["voldemorts.py", "voldemorts", f".{hashlib.md5((input_copy_path+'sdfwlkfiowprgnvEFJVO;HIbvioenyeyvgryw3weqvuincmcoqim').encode()).hexdigest()}.salt"]: # DEBUG: FROM `path_` TO `path_.split('/')[-1]`
                         sprint(f"{colorama.Fore.RED}This file cannot be encrypted/decrypted{colorama.Fore.RESET}")
                         exit(1)
                     if isinstance(path_, list):
-                        return list(set(path_))[0]
+                        return list(set(path_)) # NOTE: THE [0] from this line have been removed
                     else:
-                        return path_
+                        return [path_] # NOTE: ADD A list() to the 'path_' var
             else:
                 files_temp_list: List[str] = []
                 for each_file in temp_dirs_list_for_all_dirs_opt:
@@ -1079,7 +1086,7 @@ Examples:
 
     hash_options.add_argument("-hash", "--get-hash", action="store_true", help="Calculate the hash sum of the files [before and after the whole encrypting process], default to 'sha256'")   #NOTE: Make this flag useful.
     hash_options.add_argument("-He", "--hash-each", action="store_true", help="Calculate the hash sum of the files [before and after each encrypting layer process], default to 'sha256'")   #NOTE: Make this flag useful.
-    hash_options.add_argument("-t", "--hash-type", default="sha265", help="Specify the type of hash if it exists, default to 'sha256'")   #NOTE: Make this flag useful.
+    hash_options.add_argument("-t", "--hash-type", default="sha265", help="Specify the type of hash if it exists, default to 'sha256'")
 
     search_options.add_argument("-a", "--is-around", action="store_true", help="If is around the tool will encrypt/decrypt all the files that is with it in the same directory")
     search_options.add_argument("-s", "--skipped", help="If there is any file you want to ignored it", nargs='*', default=False, type=list[str])
@@ -1200,16 +1207,8 @@ Examples:
 
         if decrypt_:
 
-            result = input(f"{colorama.Fore.YELLOW}If you set a new salt during the decryption process, this will cause the loss of the old salt that this file was encrypted with, and you will not be able to decrypt it. {colorama.Fore.MAGENTA}Do you want to continue like this{colorama.Fore.MAGENTA}[{colorama.Fore.GREEN}y{colorama.Fore.YELLOW}/{colorama.Fore.RED}N{colorama.Fore.MAGENTA}]{colorama.Fore.WHITE}? {colorama.Fore.RESET}")
+            sprint(f"{colorama.Fore.RED}Error, cannot make new salt during the decryption process because this will lead to lose your data.{colorama.Fore.RESET}")
 
-            if result.strip().lower() in ['y', 'yes', 'yeah', '1']:
-                del result
-                key: bytes = generate_key(password, salt_size=args.salt_size, save_salt=True, filename=folder)
-
-                del password
-            else:
-                sprint(f"{colorama.Fore.BLUE}Rerun this program again if you want to encrypt anything without this mistake !{colorama.Fore.RESET}")
-                exit(0)
         else:
             key: bytes = generate_key(password, salt_size=args.salt_size, save_salt=True)
 
