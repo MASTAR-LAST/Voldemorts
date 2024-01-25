@@ -971,11 +971,25 @@ def password_generator(charset: str, length: int) -> str:
         length (int): the length of the password.
 
     Returns:
-        str: return the password
-    """
-    password = ''.join(choice(charset) for _ in range(length))
-    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+        str: return the password.
+    """ # TODO: Make the password saved in encrypted form and give the user the key to encrypt it or make the key as a part of the encrypted password itself.
+    password: str = ''.join(choice(charset) for _ in range(length))
+    
+    if get_user_mode(colored=False) == "Root":
+        config_file: ConfigParser = ConfigParser()
+        if get_user_mode(colored=False) == "Root":
+            config_file.read("../../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../../usr/
+        else:
+            config_file.read("../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../usr/
+        desktop_path: str = config_file["DEFAULT"]["DesktopPath"].strip("\"")
+        if desktop_path == "ENTER YOUR DESKTOP PATH HERE":
+            sprint(f"\n{colorama.Fore.YELLOW}You need to put your Desktop Path in the .config.ini file.{colorama.Fore.RESET}\n")
+            exit(1)
+    else:
+        desktop_path: str = run("echo $HOME/Desktop", shell=True, capture_output=True, text=True).stdout.strip('\n')
+
     file_path: str = f"{desktop_path}/auto_password_{hashlib.md5(password.encode()).hexdigest()}.pass"
+
     try: 
 
         with open(file_path, 'w') as passfile:
