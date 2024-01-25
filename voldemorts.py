@@ -44,7 +44,7 @@ ua = {"User-Agent": UserAgent().random}
 def version_checker() -> None:
     """Search for a new release in github repo.
     """
-    current_version: list[LiteralString] = __version__.split('.')
+    current_version = __version__.split('.')
     sprint(f"\n{colorama.Fore.YELLOW}Check for updates...{colorama.Fore.RESET}\n")
     try:
         response: Response = get("https://github.com/MASTAR-LAST/Voldemorts/tags", headers=ua)
@@ -698,7 +698,7 @@ def filter(arg_path: str = WD, *, is_around: bool = True, skipped: Union[None, L
 
     Returns:
         Union[str, List[str]: return a `str` if you choose a file and want only one and return a `List[str]` if you want a dir.
-    """ 
+    """
 
     global all_dirs
 
