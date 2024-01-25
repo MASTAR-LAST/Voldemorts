@@ -1273,6 +1273,10 @@ Notes:
     if encrypt_ and decrypt_: # NOTE: Always should be on the top of all checks. 
         sprint(f"\n{colorama.Fore.RED}Please specify whether you want to encrypt the file or decrypt it.{colorama.Fore.RESET}")
         exit(1)
+    
+    if (copy_all_path and copy_none_path) or (copy_none_path and copy_perm_path) or (copy_perm_path and copy_all_path):
+        sprint(f"{colorama.Fore.RED}Error, you allowed to use one `copy` method flag only.{colorama.Fore.RESET}")
+        exit(1)
 
     if (want_full_hash or want_each_hash) and decrypt_:
             sprint(f"\n{colorama.Fore.RED}Can not get the hash with decrypting flag.{colorama.Fore.RESET}")
