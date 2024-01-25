@@ -68,7 +68,7 @@ def version_checker() -> None:
                     sprint(f"{colorama.Fore.YELLOW}Good Bye!{colorama.Fore.RESET}")
                     exit(0)
 
-                if user_response.strip().lower() in ['y', 'yes', 'yeah', '1']:
+                if user_response.strip().lower() in ['y', 'yes', 'yeah', '1', 'yup']:
                     sprint(f"{colorama.Fore.GREEN}Start installation...{colorama.Fore.RESET}")
                     tool_updater(soup)
 
@@ -1219,7 +1219,7 @@ Examples:
             if encrypt_:
                 try:
                     result_ = input(f"{colorama.Fore.YELLOW}You did not set a salt size, so it well be {colorama.Fore.MAGENTA}16{colorama.Fore.YELLOW} as a default value, {colorama.Fore.CYAN}Did you want to continue {colorama.Fore.MAGENTA}[{colorama.Fore.GREEN}y{colorama.Fore.YELLOW}/{colorama.Fore.RED}N{colorama.Fore.MAGENTA}]{colorama.Fore.WHITE}? {colorama.Fore.RESET}")
-                    if result_.strip().lower() in ['y', 'yes', 'yeah', '1']:
+                    if result_.strip().lower() in ['y', 'yes', 'yeah', '1', 'yup']:
                         key: bytes = generate_key(password, salt_size=16, save_salt=True)
                         del password
                     else:
