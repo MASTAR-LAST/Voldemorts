@@ -1301,6 +1301,28 @@ Notes:
     if encrypt_:
 
         if want_auto_pass:
+
+            if pass_charset != "QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm,./;'\[]=-0987654321`~?><:\"|}{_+)(*&^%$#@!":
+
+                temp_char_sets: List[str] = []
+
+                for char_set in pass_charset:
+
+                    if char_set == "A-Z":
+                        temp_char_sets.append("QWERTYUIOPASDFGHJKLZXCVBNM")
+                    elif char_set == "a-z":
+                        temp_char_sets.append("qwertyuiopasdfghjklzxcvbnm")
+                    elif char_set in ["A-z", "a-Z"]:
+                        temp_char_sets.append("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM")
+                    elif char_set == "0-9":
+                        temp_char_sets.append("0123456789")
+                    elif char_set.lower() == "sc":
+                        temp_char_sets.append(",./;'\[]=-`~?><:\"|}{_+)(*&^%$#@!")
+
+                pass_charset = "".join(temp_char_sets)
+
+                del temp_char_sets
+
             password: str = password_generator(pass_charset, pass_length)
         else:
             password: str = ask_for_password('encrypt')
