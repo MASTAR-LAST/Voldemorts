@@ -16,11 +16,13 @@ from random import sample, choice
 
 from rich.progress import track
 from subprocess import check_output, run
-from typing import Union, LiteralString, Literal, List
+from typing import Union, Literal, List
 
 from fake_useragent import UserAgent
 from requests import get, Response, ConnectionError
 from bs4 import BeautifulSoup
+
+from configparser import ConfigParser
 
 import os
 import platform
@@ -32,6 +34,7 @@ import colorama
 import datetime
 import time
 import sys
+import shutil
 
 
 __version__: str = "1.2.0"
