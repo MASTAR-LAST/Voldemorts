@@ -1279,7 +1279,7 @@ Notes:
         exit(1)
 
     if (want_full_hash or want_each_hash) and decrypt_:
-            sprint(f"\n{colorama.Fore.RED}Can not get the hash with decrypting flag.{colorama.Fore.RESET}")
+            sprint(f"\n{colorama.Fore.RED}Cannot get the hash with decrypting flag.{colorama.Fore.RESET}")
             exit(1)
 
     if want_each_hash and want_full_hash:
@@ -1292,7 +1292,7 @@ Notes:
         exit(1)
 
     if want_auto_pass and decrypt_:
-        sprint(f"\n{colorama.Fore.RED}Error, can not generate a password with decrypting process.{colorama.Fore.RESET}")
+        sprint(f"\n{colorama.Fore.RED}Error, cannot generate a password with decrypting process.{colorama.Fore.RESET}")
         exit(1)
     
     del want_version
@@ -1330,7 +1330,7 @@ Notes:
                         key: bytes = generate_key(password, salt_size=16, save_salt=True)
                         del password
                     else:
-                        sprint(f"{colorama.Fore.BLUE}Rerun this program again if you want to encrypt anything without this mistake !{colorama.Fore.RESET}")
+                        sprint(f"{colorama.Fore.BLUE}Rerun this program again if you want to encrypt anything without this mistake !{colorama.Fore.RESET}", second=0.02)
                         exit(0)
                 except KeyboardInterrupt:
                     sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
