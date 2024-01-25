@@ -896,87 +896,39 @@ def hash_calculator(file_path: Union[str, List[str]], hash_type: str = default_h
     Returns:
         Union[str, List[str]]: file hashes
     """
-    hash_type = default_hash_type
-    if type(file_path) == list:
-        hashes: List[str] = []
+    def get_hash(data, hash_type):
+        hash_functions = {
+            'sha1': hashlib.sha1,
+            'md5': hashlib.md5,
+            'sha224': hashlib.sha224,
+            'sha256': hashlib.sha256,
+            'sha384': hashlib.sha384,
+            'sha512': hashlib.sha512,
+            'whirlpool': lambda d: hashlib.new('whirlpool', d),
+            'ripemd160': lambda d: hashlib.new('ripemd160', d),
+            'sha3_224': hashlib.sha3_224,
+            'sha3_256': hashlib.sha3_256,
+            'sha3_384': hashlib.sha3_384,
+            'sha3_512': hashlib.sha3_512,
+            'shake_128': hashlib.shake_128,
+            'shake_256': hashlib.shake_256,
+            'blake2b': hashlib.blake2b,
+            'blake2s': hashlib.blake2s,
+            '_': lambda d: hashlib.sha256(d.encode())
+        }
+        return hash_functions.get(hash_type.lower(), hash_functions['_'])(data).hexdigest()
+
+    if isinstance(file_path, list):
+        hashes = []
         for each_file in file_path:
-                with open(each_file, 'rb') as file:
-                    data = file.read()
-                match hash_type.lower():
-                    case 'sha1':
-                        hashes.append(hashlib.sha1(data).hexdigest())
-                    case 'md5':
-                        hashes.append(hashlib.md5(data).hexdigest())
-                    case 'sha224':
-                        hashes.append(hashlib.sha224(data).hexdigest())
-                    case 'sha256':
-                        hashes.append(hashlib.sha256(data).hexdigest())
-                    case 'sha384':
-                        hashes.append(hashlib.sha384(data).hexdigest())
-                    case 'sha512':
-                        hashes.append(hashlib.sha512(data).hexdigest())
-                    case 'whirlpool':
-                        hashes.append(hashlib.new('whirlpool', data).hexdigest())
-                    case 'ripemd160':
-                        hashes.append(hashlib.new('ripemd160', data).hexdigest())
-                    case 'sha3_224':
-                        hashes.append(hashlib.sha3_224(data).hexdigest())
-                    case 'sha3_256':
-                        hashes.append(hashlib.sha3_256(data).hexdigest())
-                    case 'sha3_384':
-                        hashes.append(hashlib.sha3_384(data).hexdigest())
-                    case 'sha3_512':
-                        hashes.append(hashlib.sha3_512(data).hexdigest())
-                    case 'shake_128':
-                        hashes.append(hashlib.shake_128(data).hexdigest())
-                    case 'shake_256':
-                        hashes.append(hashlib.shake_256(data).hexdigest())
-                    case 'blake2b':
-                        hashes.append(hashlib.blake2b(data).hexdigest())
-                    case 'blake2s':
-                        hashes.append(hashlib.blake2s(data).hexdigest())
-                    case _:
-                        hashes.append(hashlib.sha256(data.encode()).hexdigest())
+            with open(each_file, 'rb') as file:
+                data = file.read()
+                hashes.append(get_hash(data, hash_type))
         return hashes
-    
     else:
         with open(file_path, 'rb') as file:
             data = file.read()
-            match hash_type.lower():
-                case 'sha1':
-                    return hashlib.sha1(data).hexdigest()
-                case 'md5':
-                    return hashlib.md5(data).hexdigest()
-                case 'sha224':
-                    return hashlib.sha224(data).hexdigest()
-                case 'sha256':
-                    return hashlib.sha256(data).hexdigest()
-                case 'sha384':
-                    return hashlib.sha384(data).hexdigest()
-                case 'sha512':
-                    return hashlib.sha512(data).hexdigest()
-                case 'whirlpool':
-                    return hashlib.new('whirlpool', data).hexdigest()
-                case 'ripemd160':
-                    return hashlib.new('ripemd160', data).hexdigest()
-                case 'sha3_224':
-                    return hashlib.sha3_224(data).hexdigest()
-                case 'sha3_256':
-                    return hashlib.sha3_256(data).hexdigest()
-                case 'sha3_384':
-                    return hashlib.sha3_384(data).hexdigest()
-                case 'sha3_512':
-                    return hashlib.sha3_512(data).hexdigest()
-                case 'shake_128':
-                    return hashlib.shake_128(data).hexdigest()
-                case 'shake_256':
-                    return hashlib.shake_256(data).hexdigest()
-                case 'blake2b':
-                    return hashlib.blake2b(data).hexdigest()
-                case 'blake2s':
-                    return hashlib.blake2s(data).hexdigest()
-                case _:
-                    return hashlib.sha256(data).hexdigest()
+            return get_hash(data, hash_type)
 
 def ask_for_password(status: str) -> str:
     """Ask the user to put a password.
