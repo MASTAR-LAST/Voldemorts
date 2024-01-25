@@ -994,12 +994,118 @@ def password_generator(charset: str, length: int) -> str:
 
         with open(file_path, 'w') as passfile:
             passfile.write(password)
-        sprint(f"\n{colorama.Fore.YELLOW}Your password in [{colorama.Fore.CYAN}{file_path}{colorama.Fore.YELLOW}].{colorama.Fore.RESET}\n") 
+        sprint(f"\n{colorama.Fore.YELLOW}Your password in [{colorama.Fore.CYAN}{file_path}{colorama.Fore.YELLOW}].{colorama.Fore.RESET}\n")
+        password_info_logger(password, length, file_path)
     except Exception:
         sprint(f"\n{colorama.Fore.RED}Can not make a file to save the password in it.{colorama.Fore.RESET}")
         sprint(f"{colorama.Fore.RED}Encrypting process will stop at this point.{colorama.Fore.RESET}")
         exit(1) #NOTE: in the future make sure to ask the user if he want to show up the password and continue or he want to stop.
-    return password 
+    return password
+
+def password_info_logger(plaintext_password: str, password_length: int, password_path: str):#TODO: Make a DocString for this function
+    date_time = datetime.datetime.now()
+    try:
+        if get_user_mode(colored=False) == "Root":
+            with open("../../usr/volde_info/.password_generator_log.log", "a") as pass_log_file: #NOTE: JUST FOR RELEASING ../usr/
+                pass_log_file.write(f"""\n\n
+    Date: {date_time.strftime('%B %d, %Y')} 
+    Time: {date_time.strftime('%I:%M:%S %p')} 
+    passHash: {hashlib.sha1(plaintext_password.encode()).hexdigest()} 
+    passPath: {password_path}
+    passLength: {password_length} 
+    UserMood: {get_user_mode(colored=False)}
+    """)
+        else:
+            try:
+                answer_for_logging: str = input(f"""{colorama.Fore.YELLOW}This password will not be logged in the password log file, You need to rerun this program as a root user.
+{colorama.Fore.CYAN}Do you want to continue? {colorama.Fore.RESET}""")
+                if answer_for_logging.strip().lower() in ['y', 'yes', 'yeah', '1', 'yup']:
+                    pass
+                else:
+                    sprint(f"\n{colorama.Fore.CYAN}Program Ends...")
+                    exit(0)
+            except KeyboardInterrupt:
+                sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
+                exit(1)
+    except Exception:
+        sprint(f"\n{colorama.Fore.RED}An error occurred and we cannot record this password data in the password log.{colorama.Fore.RESET}")
+        try:
+            answer: str = input(f"\n{colorama.Fore.YELLOW}Do you want to continue without recording this data? {colorama.Fore.RESET}")
+            if answer.strip().lower() in ['y', 'yes', 'yeah', '1', 'yup']:
+                pass
+            else:
+                sprint(f"\n{colorama.Fore.CYAN}Program Ends...")
+                exit(0)
+        except KeyboardInterrupt:
+            sprint(f"\n{colorama.Fore.YELLOW}Good bey !{colorama.Fore.RESET}")
+            exit(1)
+
+
+
+count: int = 0
+copy_dir: str = ""
+
+def copy_file(source: str, copy_metadata: bool = False, copy_permissions: bool = False) -> str:
+    """Make a copy of the file
+
+    Args:
+        source (str): the file path
+        copy_metadata (bool, optional): want to copy the metadata. Defaults to False.
+        copy_permissions (bool, optional): want to copy the permissions. Defaults to False.
+    
+    Returns:
+        str: return the new file path.
+    """
+    global count, copy_dir
+
+    if get_user_mode(colored=False) == "Root":
+        config_file: ConfigParser = ConfigParser()
+        if get_user_mode(colored=False) == "Root":
+            config_file.read("../../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../../usr/
+        else:
+            config_file.read("../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../usr/
+        desktop_path: str = config_file["DEFAULT"]["DesktopPath"].strip("\"")
+        if desktop_path == "ENTER YOUR DESKTOP PATH HERE":
+            sprint(f"\n{colorama.Fore.YELLOW}You need to put your Desktop Path in the .config.ini file.{colorama.Fore.RESET}\n")
+            exit(1)
+    else:
+        desktop_path = run("echo $HOME/Desktop", shell=True, capture_output=True, text=True).stdout.strip('\n')
+
+    if count == 0:
+        copy_dir = f"{desktop_path}/Voldemorts_copied_files_{hashlib.md5(source.split('/')[-1].encode()).hexdigest()}"
+        destination_dir = copy_dir
+        try:
+            os.mkdir(destination_dir)
+        except FileExistsError:
+            sprint(f"{colorama.Fore.RED}Error, there is already a directory with the name {colorama.Fore.YELLOW}`{colorama.Fore.CYAN}Voldemorts_copied_files_{hashlib.md5(source.encode()).hexdigest()}{colorama.Fore.YELLOW}`{colorama.Fore.RESET}")
+            exit(1)
+    else:
+        destination_dir = copy_dir
+
+    count += 1
+
+    _, ext = os.path.splitext(source)
+    destination = os.path.join(destination_dir, f"{source.split('/')[-1]}_volde_copy{ext}")
+
+    try:
+        if copy_metadata:
+            shutil.copy2(source, destination)
+        else:
+            shutil.copy(source, destination)
+
+        if copy_permissions:
+            os.chmod(destination, 0o666)
+
+        return destination
+
+    except PermissionError:
+        sprint(f"{colorama.Fore.RED}Error, you do not have the permission to copy this file {colorama.Fore.YELLOW}`{colorama.Fore.CYAN}{source}{colorama.Fore.YELLOW}`{colorama.Fore.RESET}")
+        exit(1)
+
+    except Exception as e:
+        sprint(f"{colorama.Fore.RED}Error, something goes wrong while trying to copy this file {colorama.Fore.YELLOW}`{colorama.Fore.CYAN}{source}{colorama.Fore.YELLOW}`{colorama.Fore.RESET}")
+        exit(1)
+    
 
 if __name__ == "__main__":
 
@@ -1048,7 +1154,11 @@ Examples:
     encryption_options.add_argument("-Ss", "--salt-size", help="If this is set a new salt with the passed size is generated, take 16 as default", type=int)
     encryption_options.add_argument("-e", "--encrypt", action="store_true", help="Whether to encrypt the file, only -e or -d can be specified")
     encryption_options.add_argument("-d", "--decrypt", action="store_true", help="Whether to decrypt the file, only -e or -d can be specified")
-    # encryption_options.add_argument("-c", "--copy", default=None, help="Make an encrypted copy of the file/directory", type=str)   #NOTE: Make this flag useful.
+
+    copy_options.add_argument("-c", "--copy", action="store_true", help="Make an encrypted copy of the file/directory, with metadata and permissions")   #NOTE: Make this flag useful.
+    copy_options.add_argument("-Pc", "--perm-copy", action="store_true", help="Make an encrypted copy of the file/directory, with permissions only")   #NOTE: Make this flag useful.
+    copy_options.add_argument("-Mc", "--meta-copy", action="store_true", help="Make an encrypted copy of the file/directory, with metadata only")   #NOTE: Make this flag useful.
+    copy_options.add_argument("-Cc", "--clean-copy", action="store_true", help="Make an encrypted copy of the file/directory, without metadata and permissions")   #NOTE: Make this flag useful.
 
     hash_options.add_argument("-hash", "--get-hash", action="store_true", help="Calculate the hash sum of the files [before and after the whole encrypting process], default to 'sha256'")   #NOTE: Make this flag useful.
     hash_options.add_argument("-He", "--hash-each", action="store_true", help="Calculate the hash sum of the files [before and after each encrypting layer process], default to 'sha256'")   #NOTE: Make this flag useful.
@@ -1075,7 +1185,12 @@ Examples:
     folder = args.directory
     want_to_check: bool = args.version_check
     want_version: bool = args.version
-    # copy_path: Union[None, str] = args.copy
+
+    copy_all_path: bool = args.copy
+    copy_perm_path: bool = args.perm_copy
+    copy_meta_path: bool = args.meta_copy
+    copy_none_path: bool = args.clean_copy
+
     want_full_hash: bool = args.get_hash
     want_each_hash: bool = args.hash_each
     hash_type: str = args.hash_type
@@ -1084,7 +1199,7 @@ Examples:
     
     want_auto_pass: bool = args.password
     pass_length: int = args.length
-    pass_charset: str = args.charset
+    pass_charset: List[str] = args.charset
 
     if want_to_skip_info:
         want_to_term = True
@@ -1203,7 +1318,11 @@ Examples:
 
     hashes: dict[str, Union[str, List[str]]] = {}
     files_hash: dict[str, dict[str, str]] = {}
-        
+
+    if copy_all_path:
+        copy_meta_path = True
+        copy_perm_path = True
+
     if encrypt_:
 
         if args.is_around:
@@ -1213,6 +1332,8 @@ Examples:
                 if args.skipped:
 
                     for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=True, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1231,6 +1352,8 @@ Examples:
                 if not args.skipped:
 
                     for _file in track(filter(folder, is_around=True, skipped=None, is_file=True, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1252,6 +1375,8 @@ Examples:
                 if args.skipped:
 
                     for _file in track(filter(folder, is_around=True, skipped=args.skipped, is_file=False, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1271,6 +1396,8 @@ Examples:
                 elif not args.skipped:
 
                     for _file in track(filter(folder, is_around=True, skipped=None, is_file=False, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1294,6 +1421,8 @@ Examples:
                 if args.skipped:
 
                     for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=True, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1313,6 +1442,8 @@ Examples:
                 elif not args.skipped:
 
                         for _file in track(filter(folder, is_around=False, skipped=None, is_file=True, search_from=start_point), description="Encrypting..."):
+                            if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                                _file = copy_file(_file, copy_meta_path, copy_perm_path)
                             hashes.update({"source": hash_calculator(_file)})
                             fernet_status = encrypt(_file, key)
                             if fernet_status == "reverse":
@@ -1334,6 +1465,8 @@ Examples:
                 if args.skipped:
 
                     for _file in track(filter(folder, is_around=False, skipped=args.skipped, is_file=False, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
@@ -1354,6 +1487,8 @@ Examples:
 
 
                     for _file in track(filter(folder, is_around=False, skipped=None, is_file=False, search_from=start_point), description="Encrypting..."):
+                        if copy_none_path or copy_all_path or copy_meta_path or copy_perm_path:
+                            _file = copy_file(_file, copy_meta_path, copy_perm_path)
                         hashes.update({"source": hash_calculator(_file)})
                         fernet_status = encrypt(_file, key)
                         if fernet_status == "reverse":
