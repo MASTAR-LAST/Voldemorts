@@ -1194,8 +1194,8 @@ Notes:
 
     password_options.add_argument("-p", "--password", action="store_true", help="If you want to generate a random password")
     password_options.add_argument("-l", "--length", default=150, help="Specify the length of the password, default to 150", type=int)
-    password_options.add_argument("-c", "--charset", default="QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm,./;'\[]=-0987654321`~?><:\"|}{_+)(*&^%$#@!", help="Specify the character set to choose from, default to 'ALL CHARS'", type=str)
-    
+    password_options.add_argument("-cs", "--charset", nargs='*', default="QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm,./;'\[]=-0987654321`~?><:\"|}{_+)(*&^%$#@!", help="Specify the character set to choose from, default to 'ALL CHARS'", type=str)
+
 
     display_options.add_argument("-T", "--terminate", action="store_true", help="Do not show the information panel and warning note")
 
