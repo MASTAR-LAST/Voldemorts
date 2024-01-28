@@ -976,30 +976,38 @@ def password_generator(charset: str, length: int) -> str:
     password: str = ''.join(choice(charset) for _ in range(length))
     
     if get_user_mode(colored=False) == "Root":
-        config_file: ConfigParser = ConfigParser()
-        if get_user_mode(colored=False) == "Root":
-            config_file.read("../../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../../usr/
-        else:
-            config_file.read("../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../usr/
-        desktop_path: str = config_file["DEFAULT"]["DesktopPath"].strip("\"")
+        config_file_path = "../../usr/volde_info/.config.ini"  #NOTE: JUST FOR RELEASING ../../usr/
+    else:
+        config_file_path = "../usr/volde_info/.config.ini"  #NOTE: JUST FOR RELEASING ../usr/
+
+    config_file = ConfigParser()
+    try:
+        config_file.read(config_file_path)
+        desktop_path: str = config_file["DEFAULT"].get("DesktopPath", "")
+        
         if desktop_path == "ENTER YOUR DESKTOP PATH HERE":
             sprint(f"\n{colorama.Fore.YELLOW}You need to put your Desktop Path in the .config.ini file.{colorama.Fore.RESET}\n")
             exit(1)
-    else:
-        desktop_path: str = run("echo $HOME/Desktop", shell=True, capture_output=True, text=True).stdout.strip('\n')
+    except Exception as e:
+        sprint(f"\n{colorama.Fore.RED}Error reading the configuration file: {e}{colorama.Fore.RESET}")
+        exit(1)
+
+    if not desktop_path:
+        sprint(f"\n{colorama.Fore.RED}DesktopPath is not defined in the configuration file.{colorama.Fore.RESET}")
+        exit(1)
 
     file_path: str = f"{desktop_path}/auto_password_{hashlib.md5(password.encode()).hexdigest()}.pass"
 
     try: 
-
         with open(file_path, 'w') as passfile:
             passfile.write(password)
-        sprint(f"\n{colorama.Fore.YELLOW}Your password in [{colorama.Fore.CYAN}{file_path}{colorama.Fore.YELLOW}].{colorama.Fore.RESET}\n")
+        sprint(f"\n{colorama.Fore.YELLOW}Your password is saved in [{colorama.Fore.CYAN}{file_path}{colorama.Fore.YELLOW}].{colorama.Fore.RESET}\n")
         password_info_logger(password, length, file_path)
-    except Exception:
-        sprint(f"\n{colorama.Fore.RED}Can not make a file to save the password in it.{colorama.Fore.RESET}")
-        sprint(f"{colorama.Fore.RED}Encrypting process will stop at this point.{colorama.Fore.RESET}")
-        exit(1) #NOTE: in the future make sure to ask the user if he want to show up the password and continue or he want to stop.
+    except Exception as e:
+        sprint(f"\n{colorama.Fore.RED}Error creating the file to save the password: {e}{colorama.Fore.RESET}")
+        sprint(f"{colorama.Fore.RED}Encryption process will stop at this point.{colorama.Fore.RESET}")
+        exit(1)
+    
     return password
 
 def password_info_logger(plaintext_password: str, password_length: int, password_path: str):#TODO: Make a DocString for this function
