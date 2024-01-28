@@ -1066,18 +1066,15 @@ def copy_file(source: str, copy_metadata: bool = False, copy_permissions: bool =
     """
     global count, copy_dir
 
+    config_file: ConfigParser = ConfigParser()
     if get_user_mode(colored=False) == "Root":
-        config_file: ConfigParser = ConfigParser()
-        if get_user_mode(colored=False) == "Root":
-            config_file.read("../../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../../usr/
-        else:
-            config_file.read("../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../usr/
-        desktop_path: str = config_file["DEFAULT"]["DesktopPath"].strip("\"")
-        if desktop_path == "ENTER YOUR DESKTOP PATH HERE":
-            sprint(f"\n{colorama.Fore.YELLOW}You need to put your Desktop Path in the .config.ini file.{colorama.Fore.RESET}\n")
-            exit(1)
+        config_file.read("../../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../../usr/
     else:
-        desktop_path = run("echo $HOME/Desktop", shell=True, capture_output=True, text=True).stdout.strip('\n')
+        config_file.read("../usr/volde_info/.config.ini") #NOTE: JUST FOR RELEASING ../usr/
+    desktop_path: str = config_file["DEFAULT"]["DesktopPath"].strip("\"")
+    if desktop_path == "ENTER YOUR DESKTOP PATH HERE":
+        sprint(f"\n{colorama.Fore.YELLOW}You need to put your Desktop Path in the .config.ini file.{colorama.Fore.RESET}\n")
+        exit(1)
 
     if count == 0:
         copy_dir = f"{desktop_path}/Voldemorts_copied_files_{hashlib.md5(source.split('/')[-1].encode()).hexdigest()}"
