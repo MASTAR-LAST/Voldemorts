@@ -34,21 +34,21 @@ echo -e "\033[1;93mInstall necessary packages...\033[0;39m"
 
 echo ""
 
-sudo pip3 install beautifulsoup4
-sudo pip3 install fake-useragent
-sudo pip3 install cryptography
-sudo pip3 install pycryptodome
-sudo pip3 install colorama
-sudo pip3 install requests
-sudo pip3 install rich
+sudo pip3 install beautifulsoup4 --break-system-packages
+sudo pip3 install fake-useragent --break-system-packages
+sudo pip3 install cryptography --break-system-packages
+sudo pip3 install pycryptodome --break-system-packages
+sudo pip3 install colorama --break-system-packages
+sudo pip3 install requests --break-system-packages
+sudo pip3 install rich --break-system-packages
 
-pip install beautifulsoup4
-pip install fake-useragent
-pip install cryptography
-pip install pycryptodome
-pip install colorama
-pip install requests
-pip install rich
+pip install beautifulsoup4 --break-system-packages
+pip install fake-useragent --break-system-packages
+pip install cryptography --break-system-packages
+pip install pycryptodome --break-system-packages
+pip install colorama --break-system-packages
+pip install requests --break-system-packages
+pip install rich --break-system-packages
 
 sudo apt-get install unzip
 

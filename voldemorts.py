@@ -36,7 +36,7 @@ import time
 import sys
 import shutil
 
-__version__: str = "1.3.1"
+__version__: str = "1.3.0"
 __status__: str = "stable" # NOTE: stable, beta, alpha for more information see <https://en.wikipedia.org/wiki/Software_release_life_cycle>
 
 ua = {"User-Agent": UserAgent().random}
